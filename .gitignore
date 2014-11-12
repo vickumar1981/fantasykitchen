@@ -1,0 +1,17 @@
+.DS_Store
+.class
+.cache
+*/out
+*.class
+*$.class
+.history
+lift_proto.db.h2.db
+console.devmode.log
+"backend/C:\\nppdf32Log\\debuglog.txt"
+clients/*/target
+clients/*/project
+clients/*/*/target
+clients/*/*/projecj
+.*
+**/target
+!/.gitignore
