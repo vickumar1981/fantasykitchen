@@ -5,70 +5,31 @@ case class Product (id: String,
                      description: String,
                      price: Long,
                      imageUrl: String,
-                     active: Boolean)
+                     active: Boolean,
+                     qty: Option[Int] = None)
 
+case class Address(line1: String,
+                   line2: String,
+                   city: String,
+                   state: String,
+                   postalCode: String,
+                   country: String)
 
-object ProductInventory {
-  val productList = Array (
-      Product ("1", "Heated Butter Knife",
-        "Heated butter knife that slices through cold spreads smoothly",
-        1295, "http://cdn.architecturendesign.net/wp-content/uploads/2014/10/life-easier-clever-inventions-a-01.jpg",
-        true),
-      Product ("2", "Ultimate Party Cooler",
-        "The ultimate party cooler complete with a smart phone charger, bottle opener, and a blender",
-        99, "http://cdn.architecturendesign.net/wp-content/uploads/2014/10/life-easier-clever-inventions-a-02.jpg",
-        true),
-      Product ("3", "Self cleaning hair brush",
-        "Self cleaning hair brush",
-        999, "http://cdn.architecturendesign.net/wp-content/uploads/2014/10/life-easier-clever-inventions-a-03.jpg",
-        true),
-      Product ("4", "Biolite camping stove",
-        "Biolite camping stove uses the heat from burning wood to generate usable electricity via USB",
-        99, "http://cdn.architecturendesign.net/wp-content/uploads/2014/10/life-easier-clever-inventions-a-041.jpg",
-        true),
-      Product ("5", "5 bladed one-handed scissors",
-        "5 bladed one-handed scissors cuts herbs into adjustable sizes.",
-        99, "http://cdn.architecturendesign.net/wp-content/uploads/2014/10/life-easier-clever-inventions-a-05.jpg",
-        true),
-      Product ("6", "5 bladed one-handed scissors",
-        "5 bladed one-handed scissors cuts herbs into adjustable sizes.",
-        99, "http://cdn.architecturendesign.net/wp-content/uploads/2014/10/life-easier-clever-inventions-a-06.jpg",
-        true),
-      Product ("7", "5 bladed one-handed scissors",
-        "5 bladed one-handed scissors cuts herbs into adjustable sizes.",
-        99, "http://cdn.architecturendesign.net/wp-content/uploads/2014/10/life-easier-clever-inventions-a-07.jpg",
-        true),
-      Product ("8", "5 bladed one-handed scissors",
-        "5 bladed one-handed scissors cuts herbs into adjustable sizes.",
-        99, "http://cdn.architecturendesign.net/wp-content/uploads/2014/10/life-easier-clever-inventions-a-08.jpg",
-        true),
-      Product ("9", "5 bladed one-handed scissors",
-        "5 bladed one-handed scissors cuts herbs into adjustable sizes.",
-        99, "http://cdn.architecturendesign.net/wp-content/uploads/2014/10/life-easier-clever-inventions-a-09.jpg",
-        true),
-      Product ("10", "5 bladed one-handed scissors",
-        "5 bladed one-handed scissors cuts herbs into adjustable sizes.",
-        99, "http://cdn.architecturendesign.net/wp-content/uploads/2014/10/life-easier-clever-inventions-a-10.jpg",
-        true),
-      Product ("11", "5 bladed one-handed scissors",
-        "5 bladed one-handed scissors cuts herbs into adjustable sizes.",
-        99, "http://cdn.architecturendesign.net/wp-content/uploads/2014/10/life-easier-clever-inventions-a-11.jpg",
-        true),
-      Product ("12", "5 bladed one-handed scissors",
-        "5 bladed one-handed scissors cuts herbs into adjustable sizes.",
-        99, "http://cdn.architecturendesign.net/wp-content/uploads/2014/10/life-easier-clever-inventions-a-12.jpg",
-        true),
-      Product ("13", "5 bladed one-handed scissors",
-        "5 bladed one-handed scissors cuts herbs into adjustable sizes.",
-        99, "http://cdn.architecturendesign.net/wp-content/uploads/2014/10/life-easier-clever-inventions-a-13.jpg",
-        true),
-      Product ("14", "5 bladed one-handed scissors",
-        "5 bladed one-handed scissors cuts herbs into adjustable sizes.",
-        99, "http://cdn.architecturendesign.net/wp-content/uploads/2014/10/life-easier-clever-inventions-a-14.jpg",
-        true),
-      Product ("15", "5 bladed one-handed scissors",
-        "5 bladed one-handed scissors cuts herbs into adjustable sizes.",
-        99, "http://cdn.architecturendesign.net/wp-content/uploads/2014/10/life-easier-clever-inventions-a-15.jpg",
-        true)
-      )
-}
+case class Promo (id: String,
+                   discount: Double,
+                   email: Option[String] = None,
+                   product_id: Option[String] = None,
+                   used: Boolean)
+
+case class CCInfo (cc_type: String, cc_number: String, cc_expiry_month: Int,
+                    cc_expiry_year: Int, first_name: String, last_name: String,
+                    primary: Boolean)
+
+case class UserCredential (email: String, password: String)
+
+case class User (email: String, password: String, first_name: String, last_name: String,
+                  address: Option[Address] = None, credit_cards: Option[List[CCInfo]] = None)
+
+case class Order (id: String, email: String, credit_card: CCInfo, address: Address,
+                  order: List[Product], tax_rate: Double, total: Option[Double] = None,
+                  promo: Option[Promo] = None)

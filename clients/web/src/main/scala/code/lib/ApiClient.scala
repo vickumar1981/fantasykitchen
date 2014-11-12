@@ -21,5 +21,7 @@ object ApiClient {
 
   private def baseUrl = "http://localhost:8080"
 
+  object myCart extends SessionVar[Box[List[Product]]](Empty)
+
   def viewProducts = url(baseUrl + "/products/").GET
 }

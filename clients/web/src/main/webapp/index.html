@@ -1,30 +1,28 @@
 <lift:surround with="default" at="content">
+    <div class="row">
     <div class="col-sm-12 padding-right">
         <div class="features_items"><!--features_items-->
             <h2 class="title text-center">Products</h2>
 
             <div class="lift:ViewProducts.viewProducts">
-                <div id="productItem">
-                    <div class="col-sm-4">
-                        <div class="product-image-wrapper">
-                            <div class="single-products">
-                                <div class="productinfo text-center">
-                                    <img width="280" height="200" id="productImage" src="images/home/product1.jpg" alt="" />
-                                    <h2 id="productPrice">$56</h2>
-                                    <p id ="productDesc">Easy Polo Black Edition</p>
-                                    <a href="#" class="btn btn-default add-to-cart"><i class="fa fa-shopping-cart"></i>Add to cart</a>
-                                </div>
-                            </div>
-                            <div class="choose">
-                                <ul class="nav nav-pills nav-justified">
-                                    <li><a href="#"><i class="fa fa-plus-square"></i>Add to wishlist</a></li>
-                                    <li><a href="#"><i class="fa fa-plus-square"></i>Add to compare</a></li>
-                                </ul>
+
+                <!-- <div class="register-req" data-lift="msgs"></div> -->
+
+                <div class="col-sm-4" id="productItem">
+                    <div class="product-image-wrapper">
+                        <div class="single-products">
+                            <div class="productinfo text-center">
+                                <img width="280" height="200" id="productImage" src="images/home/product1.jpg" alt="" />
+                                <h2 id="productPrice">$56</h2>
+                                <p id ="productDesc">Easy Polo Black Edition</p>
+                                <a id="addToCart" class="btn btn-default add-to-cart"><i class="fa fa-shopping-cart"></i>Add to cart</a>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+
         </div><!--features_items-->
+    </div>
     </div>
 </lift:surround>

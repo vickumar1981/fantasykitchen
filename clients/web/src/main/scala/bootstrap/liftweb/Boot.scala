@@ -44,7 +44,8 @@ class Boot {
     // Build SiteMap
     def sitemap = SiteMap(
       Menu("Home") / "index",
-      Menu("Login") / "login")
+      Menu("Login") / "login",
+      Menu("Cart") / "cart")
 
     def sitemapMutators = User.sitemapMutator
 

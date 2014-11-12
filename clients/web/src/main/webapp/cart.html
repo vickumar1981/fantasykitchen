@@ -1,0 +1,50 @@
+<lift:surround with="default" at="content">
+    <div class="col-sm-12">
+        <h2 class="title text-center">My Cart</h2>
+    </div>
+    <div class="table-responsive cart_info">
+        <div class="lift:ViewProducts.viewCart">
+        <table class="table table-condensed">
+            <thead>
+            <tr class="cart_menu">
+                <td class="image">Item</td>
+                <td class="description"></td>
+                <td class="price">Price</td>
+                <td class="quantity">Quantity</td>
+                <td class="total">Total</td>
+                <td></td>
+            </tr>
+            </thead>
+            <tbody>
+            <div id="cart_item">
+            <tr id="cart_row">
+                <td class="cart_product">
+                    <img width="110" height="110" id="cart_image" src="images/cart/one.png" alt="">
+                </td>
+                <td class="cart_description" align="center">
+                    <h4 id="cart_item_name">Name</h4>
+                    <p id="cart_item_desc">Description</p>
+                </td>
+                <td class="cart_price">
+                    <p id="cart_item_price">$59</p>
+                </td>
+                <td class="cart_quantity">
+                    <div class="cart_quantity_button">
+                        <a class="cart_quantity_up" href=""> + </a>
+                        <input class="cart_quantity_input" type="text" name="quantity" value="1" autocomplete="off" size="2">
+                        <a class="cart_quantity_down" href=""> - </a>
+                    </div>
+                </td>
+                <td class="cart_total">
+                    <p class="cart_total_price">$59</p>
+                </td>
+                <td class="cart_delete">
+                    <a class="cart_quantity_delete" href=""><i class="fa fa-times"></i></a>
+                </td>
+            </tr>
+            </div>
+            </tbody>
+        </table>
+        </div>
+    </div>
+</lift:surround>
