@@ -43,6 +43,8 @@ class ViewProducts {
   private def formatPrice (price: Long) = {
     if (price >= 100)
       ("$" + (price.toDouble * 0.01).toString.substring(0,price.toString.length + 1))
+    else if (price < 10)
+      ("$0.0" + price.toString)
     else
       ("$0." + price.toString)
   }
@@ -78,16 +80,30 @@ class ViewProducts {
       "#productDesc *" #> p.description &
       "#addToCart [onclick]" #> SHtml.ajaxInvoke (() => addProductToCart(p))
 
+  private def showNoItemsInCart = "#cart_row *" #> noProductsInCart &
+    ".cart_menu [style+]" #> "display:none" &
+    "#order_summary [style+]" #> "display:none"
+
+  private def showOrderSummary (order: List[Product]) = {
+    val subtotal: Long = order.map { p => (p.price * p.qty.getOrElse(0)) }.sum
+    val tax: Long = (subtotal * 5) / 100
+    val total = subtotal + tax
+    ".order_subtotal *" #> ("Subtotal: " + formatPrice(subtotal)) &
+      ".order_tax *" #> ("Tax: " + formatPrice(tax)) &
+      ".order_total *" #> ("Total: " + formatPrice(total))
+  }
+
   private def renderCart = ApiClient.myCart.get match {
     case Full(productList) =>
-      if (productList.size > 0)
-        "#cart_row *" #> productList.sortBy(i => (i.name, i.id)).map { p => showCartItem(p) } &
-        ".cart_menu [style!]" #> "display:none"
-      else
-        "#cart_row *" #> noProductsInCart &
-        ".cart_menu [style+]" #> "display:none"
-    case _ => "#cart_row *" #> noProductsInCart &
-              ".cart_menu [style+]" #> "display:none"
+      if (productList.size > 0) {
+        val order = productList.sortBy(i => (i.name, i.id))
+        "#cart_row *" #> order.map { p => showCartItem(p)} &
+          ".cart_menu [style!]" #> "display:none" &
+          "#order_summary [style!]" #> "display:none" &
+          showOrderSummary (order)
+      }
+      else showNoItemsInCart
+    case _ => showNoItemsInCart
   }
 
   def viewProducts (in: NodeSeq): NodeSeq = {
