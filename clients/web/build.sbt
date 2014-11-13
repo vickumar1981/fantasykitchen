@@ -22,6 +22,7 @@ scalacOptions ++= Seq("-deprecation", "-unchecked")
 libraryDependencies ++= {
   val liftVersion = "2.6-RC1"
   Seq(
+    "org.mindrot" % "jbcrypt" % "0.3m",
     "net.databinder.dispatch" %% "dispatch-core" % "0.11.0",
     "net.liftweb"       %% "lift-webkit"        % liftVersion        % "compile",
     "net.liftweb"       %% "lift-mapper"        % liftVersion        % "compile",

@@ -126,26 +126,12 @@ object LoginValidator {
 
   private def isValidEmail(email: String): Boolean = """(\w+)@([\w\.]+)""".r.unapplySeq(email).isDefined
 
-  private def checkIfEmailsMatch (email1: String, email2: String) = {
-    email1.equalsIgnoreCase(email2)
-  }
-
   def checkIfPWMatch (pw1: String, pw2 :String) = {
     BCrypt.checkpw(pw2, pw1)
   }
 
-  def validateRegistration (u: User, confirm_email: String, pw: String, confirm_pw: String) = {
+  def validateRegistration (u: User, pw: String, confirm_pw: String) = {
     val errors = scala.collection.mutable.Map[String,String]()
-
-    if (u.last_name.isEmpty)
-      errors += "last_name" -> "Last name is required."
-    else
-      errors += "last_name" -> ""
-
-    if (u.first_name.isEmpty)
-      errors += "first_name" -> "First name is required."
-    else
-      errors += "first_name" -> ""
 
     if (u.email.isEmpty)
       errors += "email" -> "Email is required"
@@ -153,13 +139,6 @@ object LoginValidator {
       errors += "email" -> "Email is invalid."
     else
       errors += "email" -> ""
-
-    if (confirm_email.isEmpty)
-      errors += "confirm_email" -> "Email confirmation is required."
-    else if (!confirm_email.isEmpty && !checkIfEmailsMatch(u.email, confirm_email))
-      errors += "confirm_email" -> "Emails don't match."
-    else
-      errors += "confirm_email" -> ""
 
     if (pw.isEmpty)
       errors += "pw" -> "Password is required."
@@ -175,7 +154,6 @@ object LoginValidator {
     else
       errors += "confirm_pw" -> ""
 
-    //errors ++ AddressValidator.validateAddress(u.cc_address)
     errors
   }
 }
