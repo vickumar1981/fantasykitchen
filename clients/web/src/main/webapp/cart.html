@@ -2,7 +2,7 @@
     <div class="col-sm-12">
         <h2 class="title text-center">My Cart</h2>
     </div>
-    <div class="table-responsive cart_info">
+    <div class="table-responsive cart_info" align="center">
         <div class="lift:ViewProducts.viewCart">
         <table class="table table-condensed">
             <thead>
@@ -31,7 +31,8 @@
                 <td class="cart_quantity">
                     <div class="cart_quantity_button">
                         <a class="cart_quantity_up" href=""> + </a>
-                        <input class="cart_quantity_input" type="text" name="quantity" value="1" autocomplete="off" size="2">
+                        <input class="cart_quantity_input" type="text"
+                               name="quantity" value="1" autocomplete="off" size="2" readonly>
                         <a class="cart_quantity_down" href=""> - </a>
                     </div>
                 </td>
@@ -47,4 +48,6 @@
         </table>
         </div>
     </div>
+    <br/>
+    <br/>
 </lift:surround>

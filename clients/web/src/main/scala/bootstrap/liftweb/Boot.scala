@@ -78,5 +78,10 @@ class Boot {
 
     // Make a transaction span the whole HTTP request
     S.addAround(DB.buildLoanWrapper)
+
+    LiftRules.uriNotFound.prepend(NamedPF("404handler"){
+      case (req,failure) =>
+        NotFoundAsTemplate(ParsePath(List("404"),"html",false,false))
+    })
   }
 }

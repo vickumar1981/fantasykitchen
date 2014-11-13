@@ -13,7 +13,7 @@ class ProductsRest extends Rest {
   def service: PartialFunction[Request, Response] = {
     case GET("products" :: Nil) => {
       val products = Products.findProducts
-      JSONResponse(products.sortBy(p => (p.name)), products.size)
+      JSONResponse(products.sortBy(p => (p.name, p.id)), products.size)
     }
   }
 }
