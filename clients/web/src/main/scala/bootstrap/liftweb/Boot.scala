@@ -83,5 +83,7 @@ class Boot {
       case (req,failure) =>
         NotFoundAsTemplate(ParsePath(List("404"),"html",false,false))
     })
+
+    LiftRules.noticesAutoFadeOut.default.set((noticeType: NoticeType.Value) => Full((1 seconds, 3 seconds)))
   }
 }
