@@ -1,9 +1,10 @@
 package code
 package snippet
 
-import code.lib.{ApiClient, UserClient}
+import code.lib.{ApiClient, UserClient, ProductClient}
 import net.liftweb.http.SHtml
 import net.liftweb.http.js.{JsCmd, JsCmds}
+import net.liftweb.common.Full
 
 import scala.xml.NodeSeq
 
@@ -25,7 +26,8 @@ class ShoppingMenu {
           "#login_logout *" #> showLoginText("Logout")
       else
         "#login_logout [onclick]" #> JsCmds.RedirectTo("/login") &
-          "#login_logout *" #> showLoginText("Login"))
+          "#login_logout *" #> showLoginText("Login")) &
+      "#cart_count *" #> ProductClient.updateCartText
     cssSel(in)
   }
 }

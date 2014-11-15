@@ -24,25 +24,14 @@ class ViewProducts {
 
   private object shoppingCartTemplate extends RequestVar(renderShoppingCart)
 
-  private object newProductAdded extends TransientRequestVar[Option[Product]](None)
-
-  def showUpdateMessages (in: NodeSeq): NodeSeq =
-    newProductAdded.is match {
-      case Some(p) => {
-        S.notice(<div class='register-req'><p>{p.name} added to cart.</p></div>)
-        in
-      }
-      case _ => {
-        S.notice("")
-        NodeSeq.Empty
-      }
-    }
-
   def viewCart (in: NodeSeq): NodeSeq = renderCart(in)
 
   private def formatPrice (price: Long) = {
     if (price >= 100)
-      ("$" + (price.toDouble * 0.01).toString.substring(0,price.toString.length + 1))
+      if (price.toString.length >= 5)
+        ("$" + (price.toDouble * 0.01).toString.substring(0,price.toString.length + 1))
+      else
+        ("$" + (price.toDouble * 0.01).toString.substring(0,price.toString.length))
     else if (price < 10)
       ("$0.0" + price.toString)
     else
@@ -51,7 +40,8 @@ class ViewProducts {
 
   private def addProductToCart (p: Product): JsCmd = {
     ProductClient.addProductToCart(p)
-    JsCmds.RedirectTo("/cart", () => newProductAdded(Some(p)))
+    S.notice(<div class='register-req'><p>{p.name} added to cart.</p></div>)
+    SetHtml("cart_count", <span>{ProductClient.updateCartText}</span>)
   }
 
   private def showCartItem (p: Product): CssSel =
@@ -63,15 +53,16 @@ class ViewProducts {
       ".cart_quantity_input [value]" #> p.qty.getOrElse(1) &
       ".cart_quantity_delete [onclick]" #> SHtml.onEvent((s) => {
         ProductClient.deleteProductFromCart(p)
-        SetHtml("cart_item", shoppingCartTemplate.is.applyAgain) & JsCmds.RedirectTo("/cart")
+        SetHtml("cart_item", shoppingCartTemplate.is.applyAgain) &
+          SetHtml("cart_count", <span>{ProductClient.updateCartText}</span>)
       }) &
       ".cart_quantity_up [onclick]" #> SHtml.onEvent((s) => {
         ProductClient.addProductToCart(p)
-        SetHtml("cart_item", shoppingCartTemplate.is.applyAgain) & JsCmds.RedirectTo("/cart")
+        SetHtml("cart_item", shoppingCartTemplate.is.applyAgain)
       }) &
       ".cart_quantity_down [onclick]" #> SHtml.onEvent((s) => {
         ProductClient.addProductToCart(p, -1)
-        SetHtml("cart_item", shoppingCartTemplate.is.applyAgain) & JsCmds.RedirectTo("/cart")
+        SetHtml("cart_item", shoppingCartTemplate.is.applyAgain)
       })
 
   private def showProductItem (p: Product) =

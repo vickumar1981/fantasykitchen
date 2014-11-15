@@ -13,6 +13,13 @@ body {
   font-weight:400px;
 }
 
+#lift__noticesContainer__ {
+    position: fixed;
+    top: 0px;
+    z-index: 10;
+    width: 90%;
+}
+
 ul li {
   list-style: none;
 }
@@ -1860,8 +1867,10 @@ h2.title {
   padding: 2px 3px;
 }
 
-
 .register-req  {
+  background: #FE980F;
+  color: white;
+  font-weight: bold;
   font-size: 14px;
   font-weight: 300;
   padding: 15px 20px;

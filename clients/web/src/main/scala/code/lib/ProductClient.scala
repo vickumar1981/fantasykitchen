@@ -12,6 +12,17 @@ import scala.collection.mutable.MutableList
 object ProductClient {
   private implicit val formats = DefaultFormats
 
+  def updateCartText = (if (ApiClient.myCart.isDefined) {
+    ApiClient.myCart.get match {
+      case Full(cart) => (if (cart.size > 0) {
+        val cartSize = cart.map { product => product.qty.getOrElse(0)}.sum
+        "(" + cartSize + ")"
+      } else "")
+      case _ => ""
+    }
+  }
+  else "")
+
   def viewProducts: Option[ApiProduct] = {
     val result = Http(ApiClient.viewProducts OK as.String).either
     result() match {
