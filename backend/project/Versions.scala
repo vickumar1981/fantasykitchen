@@ -10,6 +10,7 @@ object Versions {
   val commonsIO = "1.3.2"
   val liftJson = "2.6-M4"
 
+  val javaxMail = "1.5.2"
   val selenium = "2.43.1"
   val tagSoup = "1.2.1"
   val akkaActor = "2.3.6"

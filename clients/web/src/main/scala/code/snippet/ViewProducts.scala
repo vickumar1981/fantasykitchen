@@ -27,15 +27,9 @@ class ViewProducts {
   def viewCart (in: NodeSeq): NodeSeq = renderCart(in)
 
   private def formatPrice (price: Long) = {
-    if (price >= 100)
-      if (price.toString.length >= 5)
-        ("$" + (price.toDouble * 0.01).toString.substring(0,price.toString.length + 1))
-      else
-        ("$" + (price.toDouble * 0.01).toString.substring(0,price.toString.length))
-    else if (price < 10)
-      ("$0.0" + price.toString)
-    else
-      ("$0." + price.toString)
+    val dollars = (price / 100)
+    val cents = (price % 100)
+    ("$" + dollars + "." + (if (cents < 10) "0" + cents else cents))
   }
 
   private def addProductToCart (p: Product): JsCmd = {
@@ -53,8 +47,7 @@ class ViewProducts {
       ".cart_quantity_input [value]" #> p.qty.getOrElse(1) &
       ".cart_quantity_delete [onclick]" #> SHtml.onEvent((s) => {
         ProductClient.deleteProductFromCart(p)
-        SetHtml("cart_item", shoppingCartTemplate.is.applyAgain) &
-          SetHtml("cart_count", <span>{ProductClient.updateCartText}</span>)
+        SetHtml("cart_item", shoppingCartTemplate.is.applyAgain)
       }) &
       ".cart_quantity_up [onclick]" #> SHtml.onEvent((s) => {
         ProductClient.addProductToCart(p)

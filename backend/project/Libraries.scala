@@ -6,6 +6,8 @@ object Libraries {
   lazy val scalaz = "org.scalaz" %% "scalaz-core" % Versions.scalaz
   lazy val typesafeConfig = "com.typesafe" % "config" % Versions.typesafeConfig
 
+  lazy val javaxMail = "com.sun.mail" % "javax.mail" % Versions.javaxMail
+
   lazy val servletApi = "org.eclipse.jetty.orbit" % "javax.servlet" % Versions.servletApi
   lazy val commonsIO = "org.apache.commons" % "commons-io" % Versions.commonsIO
   lazy val liftJson = "net.liftweb" %% "lift-json" % Versions.liftJson

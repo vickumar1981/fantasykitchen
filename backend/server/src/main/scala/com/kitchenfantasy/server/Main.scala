@@ -99,7 +99,7 @@ object Main {
 
   private def loadConfiguration(args: Array[String]): Config = {
     require((args.length >= 1) && (args.length <= 2),
-      "The server requires ONE argument, the config file, and optionally a --migrate flag.")
+      "The server requires ONE argument, the config file, and optionally a --update-products flag.")
 
     val configFile = new File(args(0))
     require(configFile.exists(), s"The argument provided '${args(0)}' refers to a file that doesn't exist.")

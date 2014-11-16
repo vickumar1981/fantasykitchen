@@ -24,7 +24,18 @@ object ApiClient {
 
   object currentUser extends SessionVar[Box[User]](Empty)
 
-  def isLoggedIn () = currentUser.isDefined
+  def isLoggedIn () = {
+    if (currentUser.isDefined) {
+      val user = currentUser.get
+      if (!user.isEmpty)
+        if (user.openTheBox.invite_code.isEmpty)
+          false
+        else
+          true
+      else false
+    }
+    else false
+  }
 
   def registerUser(u: User) = url(baseUrl + "/user/register").POST.setBody(compact(render(decompose(u))))
 

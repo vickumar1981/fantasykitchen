@@ -73,7 +73,7 @@ class RiakMapper[T : Manifest](bucketName: String) {
   
   def delete(key: String) { bucket.delete(key) }
 
-  private def generateId = UUID.randomUUID().toString.replace("-","")
+  protected def generateId = UUID.randomUUID().toString.replace("-","")
 
   protected def fromRiak(riakData: IRiakObject): (Array[Byte], String, Option[T]) = {
     SerializationProvider.read[T](riakData.getValue)
