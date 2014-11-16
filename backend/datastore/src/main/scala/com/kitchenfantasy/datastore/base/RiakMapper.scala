@@ -71,7 +71,7 @@ class RiakMapper[T : Manifest](bucketName: String) {
     id
   }
   
-  def delete(key: String) { bucket.delete(key) }
+  def delete(key: String) { bucket.delete(key).execute() }
 
   protected def generateId = UUID.randomUUID().toString.replace("-","")
 

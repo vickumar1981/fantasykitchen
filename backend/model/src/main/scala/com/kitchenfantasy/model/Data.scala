@@ -27,8 +27,8 @@ case class CCInfo (cc_type: String, cc_number: String, cc_expiry_month: Int,
 
 case class UserCredential (email: String, password: String)
 
-case class User (email: String, password: String, first_name: String, last_name: String,
-                  address: Option[Address] = None, credit_cards: Option[List[CCInfo]] = None,
+case class User (email: String, password: String, first_name: String, last_name: String, confirmed: Boolean = false,
+                  is_admin: Boolean = false, address: Option[Address] = None, credit_cards: Option[List[CCInfo]] = None,
                   invite_code: Option[String] = None)
 
 case class InviteCode (user: User, code: String)

@@ -24,14 +24,13 @@ object ApiClient {
 
   object currentUser extends SessionVar[Box[User]](Empty)
 
-  def isLoggedIn () = {
+  object myCart extends SessionVar[Box[List[Product]]](Empty)
+
+  def isLoggedIn (): Boolean = {
     if (currentUser.isDefined) {
       val user = currentUser.get
       if (!user.isEmpty)
-        if (user.openTheBox.invite_code.isEmpty)
-          false
-        else
-          true
+        user.open_!.confirmed
       else false
     }
     else false
@@ -40,8 +39,6 @@ object ApiClient {
   def registerUser(u: User) = url(baseUrl + "/user/register").POST.setBody(compact(render(decompose(u))))
 
   def loginUser(u: UserCredential) = url(baseUrl + "/user/login").POST.setBody(compact(render(decompose(u))))
-
-  object myCart extends SessionVar[Box[List[Product]]](Empty)
 
   def viewProducts = url(baseUrl + "/products/").GET
 }

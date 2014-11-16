@@ -25,16 +25,18 @@ class UserRest extends Rest {
                 val emailSender = EmailSettings.processor.actorOf(Props[SendEmailJob],
                   "register_user" + "_" + System.currentTimeMillis.toString)
                 emailSender ! SendRegistrationEmail(invite)
-                JSONResponse(register_user, 1)
+                JSONResponse(register_user.copy(confirmed = false), 1)
               }
               case Some(code) => {
-                println("\nVerifying user '" + email + "'\n")
-                InviteCodes.read(register_user.email) match {
+                InviteCodes.read(email) match {
                   case None => Error(404, "No invite code found for user '" + email + "'.")
                   case Some(invite) => {
                     if (code.equals(invite.code)) {
-                      Users.createUser(register_user)
-                      JSONResponse(register_user, 1)
+                      println("\nVerifying user '" + email + "'\n")
+                      val newUser = invite.user.copy(confirmed = true, invite_code = Some(invite.code))
+                      Users.createUser(newUser)
+                      InviteCodes.delete(email)
+                      JSONResponse(newUser, 1)
                     }
                     else Error (404, "The invite code is invalid.")
                   }
@@ -53,8 +55,8 @@ class UserRest extends Rest {
         case (string, Some(user_credential)) =>
           Users.read(user_credential.email.toLowerCase) match {
             case Some(u) =>
-              if (LoginValidator.checkIfPWMatch(u.password, user_credential.password))
-                JSONResponse (u, 1)
+              if ((LoginValidator.checkIfPWMatch(u.password, user_credential.password)) && (u.confirmed))
+                JSONResponse (u.copy(invite_code = None), 1)
               else Error(400, "POST credentials are invalid.")
             case None => Error(400, "POST credentials are invalid.")
           }

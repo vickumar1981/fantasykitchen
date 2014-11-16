@@ -84,6 +84,6 @@ class Boot {
         NotFoundAsTemplate(ParsePath(List("404"),"html",false,false))
     })
 
-    LiftRules.noticesAutoFadeOut.default.set((noticeType: NoticeType.Value) => Full((1 seconds, 3 seconds)))
+    LiftRules.noticesAutoFadeOut.default.set((noticeType: NoticeType.Value) => Full((2 seconds, 4 seconds)))
   }
 }
