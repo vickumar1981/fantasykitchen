@@ -1,6 +1,8 @@
 package bootstrap.liftweb
 
+import code.lib.{UserClient, ApiClient}
 import net.liftweb._
+import net.liftweb.http.provider.HTTPCookie
 import util._
 import Helpers._
 
@@ -11,6 +13,8 @@ import sitemap._
 import Loc._
 import mapper._
 
+import com.kitchenfantasy.model.UserCredential
+
 import code.model._
 import net.liftmodules.JQueryModule
 
@@ -20,6 +24,13 @@ import net.liftmodules.JQueryModule
  * to modify lift's environment
  */
 class Boot {
+  def autoLoginUser(in: List[HTTPCookie]) = {
+    val login = in.filter { c => (c.name.equals("__kitchenfantasy_login"))}.map { c => c.value}
+    val pw = in.filter { c => (c.name.equals("__kitchenfantasy_pw"))}.map { c => c.value}
+    if ((login.size == 1) && (pw.size == 1))
+      UserClient.loginUser(UserCredential(login(0).getOrElse(""), pw(0).getOrElse("")))
+  }
+
   def boot {
     if (!DB.jndiJdbcConnAvailable_?) {
       val vendor = 
@@ -31,6 +42,13 @@ class Boot {
       LiftRules.unloadHooks.append(vendor.closeAllConnections_! _)
 
       DB.defineConnectionManager(util.DefaultConnectionIdentifier, vendor)
+    }
+
+    LiftRules.earlyInStateful.append {
+      case Full(r) if (!ApiClient.isLoggedIn()) => {
+        autoLoginUser(r.cookies)
+      }
+      case _ =>
     }
 
     // Use Lift's Mapper ORM to populate the database
@@ -70,7 +88,7 @@ class Boot {
     LiftRules.early.append(_.setCharacterEncoding("UTF-8"))
 
     // What is the function to test if a user is logged in?
-    LiftRules.loggedInTest = Full(() => User.loggedIn_?)
+    LiftRules.loggedInTest = Full(() => ApiClient.isLoggedIn)
 
     // Use HTML5 for rendering
     LiftRules.htmlProperties.default.set((r: Req) =>

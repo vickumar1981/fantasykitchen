@@ -2,9 +2,9 @@ package code
 package snippet
 
 import code.lib.{ApiClient, UserClient, ProductClient}
-import net.liftweb.http.SHtml
+import net.liftweb.http.provider.HTTPCookie
+import net.liftweb.http.{S, SHtml}
 import net.liftweb.http.js.{JsCmd, JsCmds}
-import net.liftweb.common.Full
 
 import scala.xml.NodeSeq
 
@@ -14,7 +14,9 @@ class ShoppingMenu {
 
   private def processLogOut : JsCmd = {
     UserClient.logoutUser
-    JsCmds.RedirectTo("/")
+    S.addCookie(HTTPCookie("__kitchenfantasy_login", "").setMaxAge(0).setPath("/"))
+    S.addCookie(HTTPCookie("__kitchenfantasy_pw", "").setMaxAge(0).setPath("/"))
+    S.redirectTo("/")
   }
 
   private def showLoginText (s: String) = <a><i class='fa fa-lock'></i> {s}</a>

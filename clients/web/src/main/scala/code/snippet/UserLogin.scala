@@ -3,7 +3,8 @@ package snippet
 
 import code.lib.{ApiClient, UserClient}
 import net.liftweb.common.Full
-import net.liftweb.http.{RequestVar, S, SHtml}
+import net.liftweb.http.provider.HTTPCookie
+import net.liftweb.http.{S, RequestVar, SHtml}
 import net.liftweb.http.js.JsCmd
 import net.liftweb.http.js.JsCmds.Noop
 
@@ -15,7 +16,7 @@ class UserLogin {
   private lazy val pageUrl = "/login"
   private var login_email = ""
   private var login_pw = ""
-  private var remember_me = "no"
+  private var remember_me = false
 
   private object registrationInfo extends RequestVar[(String, String, String, Boolean)]("", "", "", false)
 
@@ -104,6 +105,14 @@ class UserLogin {
       val login_user: UserCredential = UserCredential (login_email.toLowerCase, login_pw)
       UserClient.loginUser (login_user) match {
         case Some (u) => {
+          if (remember_me) {
+            S.addCookie(HTTPCookie("__kitchenfantasy_login", login_email).setMaxAge(2592000).setPath("/"))
+            S.addCookie(HTTPCookie("__kitchenfantasy_pw", login_pw).setMaxAge(2592000).setPath("/"))
+          }
+          else {
+            S.addCookie(HTTPCookie("__kitchenfantasy_login", "").setMaxAge(0).setPath("/"))
+            S.addCookie(HTTPCookie("__kitchenfantasy_pw", "").setMaxAge(0).setPath("/"))
+          }
           S.notice(renderNotice("Logging in..."))
           S.redirectTo("/")
         }
@@ -114,6 +123,7 @@ class UserLogin {
 
     "#login_email" #> SHtml.text(login_email, login_email = _) &
       "#login_pw" #> SHtml.password(login_pw, login_pw = _) &
+      "#remember_me" #> SHtml.checkbox(remember_me, (resp) => remember_me = resp) &
       "#process_login" #> (SHtml.hidden(() => processLogIn) )
   }
 }

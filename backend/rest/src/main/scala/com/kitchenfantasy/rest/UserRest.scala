@@ -21,7 +21,7 @@ class UserRest extends Rest {
             register_user.invite_code match {
               case None => {
                 println("\nRegistering user '" + email + "'\n")
-                val invite = InviteCodes.createInviteCode(register_user)
+                val invite = InviteCodes.createInviteCode(register_user.copy(email=email))
                 val emailSender = EmailSettings.processor.actorOf(Props[SendEmailJob],
                   "register_user" + "_" + System.currentTimeMillis.toString)
                 emailSender ! SendRegistrationEmail(invite)
@@ -55,8 +55,10 @@ class UserRest extends Rest {
         case (string, Some(user_credential)) =>
           Users.read(user_credential.email.toLowerCase) match {
             case Some(u) =>
-              if ((LoginValidator.checkIfPWMatch(u.password, user_credential.password)) && (u.confirmed))
-                JSONResponse (u.copy(invite_code = None), 1)
+              if ((LoginValidator.checkIfPWMatch(u.password, user_credential.password)) && (u.confirmed)) {
+                println("\nLogging in user '" + u.email + "'\n")
+                JSONResponse(u.copy(invite_code = None), 1)
+              }
               else Error(400, "POST credentials are invalid.")
             case None => Error(400, "POST credentials are invalid.")
           }

@@ -20,7 +20,7 @@ import com.kitchenfantasy.model.InviteCode
 case class SendRegistrationEmail (invite: InviteCode)
 
 object RegistrationEmail {
-  val subject = "Welcome to Fantasy Kitchen"
+  lazy val subject = "Welcome to Fantasy Kitchen"
   def body (code: String) = { "Welcome to Fantasy Kitchen.\n\n" +
                               "Thank you for registering!\n\n" +
                               "Please use the following verification code\n" +
@@ -30,17 +30,17 @@ object RegistrationEmail {
 }
 
 object EmailSettings {
-  val processor = ActorSystem("EmailProcessor")
+  lazy val processor = ActorSystem("EmailProcessor")
 
-  val config = GlobalConfiguration.config
+  lazy val config = GlobalConfiguration.config
 
-  val username: String = config.getString("email.user")
-  val password: String = config.getString("email.password")
-  val from: String = config.getString("email.from")
-  val auth: String = config.getString("email.smtp.auth")
-  val startTLSEnabled: String = config.getString("email.smtp.startTLS")
-  val host = config.getString("email.smtp.host")
-  val port = config.getInt("email.smtp.port")
+  lazy val username: String = config.getString("email.user")
+  lazy val password: String = config.getString("email.password")
+  lazy val from: String = config.getString("email.from")
+  lazy val auth: String = config.getString("email.smtp.auth")
+  lazy val startTLSEnabled: String = config.getString("email.smtp.startTLS")
+  lazy val host = config.getString("email.smtp.host")
+  lazy val port = config.getInt("email.smtp.port")
 }
 
 class SendEmailJob extends Actor {
