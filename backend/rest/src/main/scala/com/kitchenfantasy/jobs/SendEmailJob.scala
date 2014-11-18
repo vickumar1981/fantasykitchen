@@ -21,12 +21,24 @@ case class SendRegistrationEmail (invite: InviteCode)
 
 object RegistrationEmail {
   lazy val subject = "Welcome to Fantasy Kitchen"
+
   def body (code: String) = { "Welcome to Fantasy Kitchen.\n\n" +
                               "Thank you for registering!\n\n" +
                               "Please use the following verification code\n" +
                               "to complete your registration\n\n\n" +
                               "Verification Code: " + code + "\n\n\n\n" +
                               "***** DO NOT RESPOND TO THIS MESSAGE *****\n\n" }
+
+
+  /*
+  def body {code: String} = {
+    <html lang="en">
+      <head></head>
+      <body>
+      </body>
+    </html>
+  }
+  */
 }
 
 object EmailSettings {

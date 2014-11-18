@@ -25,10 +25,11 @@ import net.liftmodules.JQueryModule
  */
 class Boot {
   def autoLoginUser(in: List[HTTPCookie]) = {
-    val login = in.filter { c => (c.name.equals("__kitchenfantasy_login"))}.map { c => c.value}
-    val pw = in.filter { c => (c.name.equals("__kitchenfantasy_pw"))}.map { c => c.value}
-    if ((login.size == 1) && (pw.size == 1))
-      UserClient.loginUser(UserCredential(login(0).getOrElse(""), pw(0).getOrElse("")))
+    val cookies = in.filter { c => (c.name.equals("__kitchenfantasy__"))}.map { c => c.value}
+    if (cookies.size == 1) {
+      val (email, pw) = UserClient.getUserCookie(cookies(0).getOrElse(""))
+      UserClient.loginUser(UserCredential(email, pw))
+    }
   }
 
   def boot {

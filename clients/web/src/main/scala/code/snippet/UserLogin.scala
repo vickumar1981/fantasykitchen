@@ -106,13 +106,10 @@ class UserLogin {
       UserClient.loginUser (login_user) match {
         case Some (u) => {
           if (remember_me) {
-            S.addCookie(HTTPCookie("__kitchenfantasy_login", login_email).setMaxAge(2592000).setPath("/"))
-            S.addCookie(HTTPCookie("__kitchenfantasy_pw", login_pw).setMaxAge(2592000).setPath("/"))
+            val cookie = UserClient.storeUserCookie(login_email, login_pw)
+            S.addCookie(HTTPCookie("__kitchenfantasy__", cookie).setMaxAge(2592000).setPath("/"))
           }
-          else {
-            S.addCookie(HTTPCookie("__kitchenfantasy_login", "").setMaxAge(0).setPath("/"))
-            S.addCookie(HTTPCookie("__kitchenfantasy_pw", "").setMaxAge(0).setPath("/"))
-          }
+          else S.addCookie(HTTPCookie("__kitchenfantasy__", "").setMaxAge(0).setPath("/"))
           S.notice(renderNotice("Logging in..."))
           S.redirectTo("/")
         }
