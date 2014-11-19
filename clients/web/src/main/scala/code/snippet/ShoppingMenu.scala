@@ -14,7 +14,7 @@ class ShoppingMenu {
 
   private def processLogOut : JsCmd = {
     UserClient.logoutUser
-    S.addCookie(HTTPCookie("__kitchenfantasy__", "").setMaxAge(0).setPath("/"))
+    S.addCookie(HTTPCookie(UserClient.userCookieName, "").setMaxAge(0).setPath("/"))
     S.redirectTo("/")
   }
 

@@ -16,8 +16,7 @@ body {
 #lift__noticesContainer__ {
     position: fixed;
     top: 0px;
-    z-index: 10;
-    width: 90%;
+    z-index: 5;
 }
 
 ul li {

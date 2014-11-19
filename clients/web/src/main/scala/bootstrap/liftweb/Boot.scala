@@ -25,7 +25,7 @@ import net.liftmodules.JQueryModule
  */
 class Boot {
   def autoLoginUser(in: List[HTTPCookie]) = {
-    val cookies = in.filter { c => (c.name.equals("__kitchenfantasy__"))}.map { c => c.value}
+    val cookies = in.filter { c => (c.name.equals(UserClient.userCookieName))}.map { c => c.value}
     if (cookies.size == 1) {
       val (email, pw) = UserClient.getUserCookie(cookies(0).getOrElse(""))
       UserClient.loginUser(UserCredential(email, pw))
@@ -34,21 +34,16 @@ class Boot {
 
   def boot {
     if (!DB.jndiJdbcConnAvailable_?) {
-      val vendor = 
-	new StandardDBVendor(Props.get("db.driver") openOr "org.h2.Driver",
+      val vendor = new StandardDBVendor(Props.get("db.driver") openOr "org.h2.Driver",
 			     Props.get("db.url") openOr 
 			     "jdbc:h2:lift_proto.db;AUTO_SERVER=TRUE",
 			     Props.get("db.user"), Props.get("db.password"))
-
       LiftRules.unloadHooks.append(vendor.closeAllConnections_! _)
-
       DB.defineConnectionManager(util.DefaultConnectionIdentifier, vendor)
     }
 
     LiftRules.earlyInStateful.append {
-      case Full(r) if (!ApiClient.isLoggedIn()) => {
-        autoLoginUser(r.cookies)
-      }
+      case Full(r) if (!ApiClient.isLoggedIn()) => autoLoginUser(r.cookies)
       case _ =>
     }
 
@@ -64,7 +59,9 @@ class Boot {
     def sitemap = SiteMap(
       Menu("Home") / "index",
       Menu("Login") / "login",
-      Menu("Cart") / "cart")
+      Menu("Cart") / "cart",
+      Menu("Account") /"account" >> If(() => ApiClient.isLoggedIn, ""),
+      Menu("Checkout") /"checkout" >> If(() => ApiClient.isLoggedIn, ""))
 
     def sitemapMutators = User.sitemapMutator
 

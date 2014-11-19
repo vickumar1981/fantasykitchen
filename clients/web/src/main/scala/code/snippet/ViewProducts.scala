@@ -45,15 +45,15 @@ class ViewProducts {
       ".cart_total_price *" #> formatPrice (p.price * p.qty.getOrElse(0)) &
       "#cart_item_desc *" #> p.description &
       ".cart_quantity_input [value]" #> p.qty.getOrElse(1) &
-      ".cart_quantity_delete [onclick]" #> SHtml.onEvent((s) => {
+      ".cart_quantity_delete [onclick]" #> SHtml.ajaxInvoke(() => {
         ProductClient.deleteProductFromCart(p)
         SetHtml("cart_item", shoppingCartTemplate.is.applyAgain)
       }) &
-      ".cart_quantity_up [onclick]" #> SHtml.onEvent((s) => {
+      ".cart_quantity_up [onclick]" #> SHtml.ajaxInvoke(() => {
         ProductClient.addProductToCart(p)
         SetHtml("cart_item", shoppingCartTemplate.is.applyAgain)
       }) &
-      ".cart_quantity_down [onclick]" #> SHtml.onEvent((s) => {
+      ".cart_quantity_down [onclick]" #> SHtml.ajaxInvoke(() => {
         ProductClient.addProductToCart(p, -1)
         SetHtml("cart_item", shoppingCartTemplate.is.applyAgain)
       })

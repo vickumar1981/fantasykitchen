@@ -107,9 +107,9 @@ class UserLogin {
         case Some (u) => {
           if (remember_me) {
             val cookie = UserClient.storeUserCookie(login_email, login_pw)
-            S.addCookie(HTTPCookie("__kitchenfantasy__", cookie).setMaxAge(2592000).setPath("/"))
+            S.addCookie(HTTPCookie(UserClient.userCookieName, cookie).setMaxAge(2592000).setPath("/"))
           }
-          else S.addCookie(HTTPCookie("__kitchenfantasy__", "").setMaxAge(0).setPath("/"))
+          else S.addCookie(HTTPCookie(UserClient.userCookieName, "").setMaxAge(0).setPath("/"))
           S.notice(renderNotice("Logging in..."))
           S.redirectTo("/")
         }

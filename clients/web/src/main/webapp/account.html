@@ -1,0 +1,82 @@
+<lift:surround with="default" at="content">
+    <div class="col-sm-12">
+        <h2 class="title text-center">My Account</h2>
+    </div>
+    <div class="shopper-informations">
+        <div class="row">
+            <div class="col-sm-2">
+                <div class="shopper-info">
+                    <p>My Account</p>
+                    <form>
+                        <input type="text" placeholder="Last Name">
+                        <input type="text" placeholder="First Name">
+                        <input type="password" placeholder="Update Password">
+                        <input type="password" placeholder="Confirm password">
+                    </form>
+                    <a class="btn btn-primary" href="">Update Account</a>
+                </div>
+            </div>
+            <div class="col-sm-6 clearfix">
+                <div class="bill-to">
+                    <div class="form-one">
+                        <form>
+                            <p>Shipping Information</p>
+                            <input type="text" placeholder="Address Line 1*">
+                            <input type="text" placeholder="Address Line 2*">
+                            <input type="text" placeholder="City*">
+                            <input type="text" placeholder="Zip Code*">
+                            <select>
+                                <option>-- State --</option>
+                                <option>United States</option>
+                                <option>Bangladesh</option>
+                                <option>UK</option>
+                                <option>India</option>
+                                <option>Pakistan</option>
+                                <option>Ucrane</option>
+                                <option>Canada</option>
+                                <option>Dubai</option>
+                            </select>
+                        </form>
+                    </div>
+                    <div class="form-two">
+                        <form>
+                            <p>Shipping Notes</p>
+                            <textarea name="message"  placeholder="Notes about your order, Special Notes for Delivery"
+                                      rows="5"></textarea>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div class="bill-to">
+                    <div class="form-two">
+                        <form>
+                            <p>Payment</p>
+                            <select>
+                                <option>-- CC Type --</option>
+                                <option>Visa</option>
+                                <option>American Express</option>
+                                <option>Mastercard</option>
+                            </select>
+                            <input type="text" placeholder="Credit Card #*">
+                            <select>
+                                <option>-- Expiration Month --</option>
+                                <option>Visa</option>
+                                <option>American Express</option>
+                                <option>Mastercard</option>
+                            </select>
+                            <select>
+                                <option>-- Expiration Year --</option>
+                                <option>Visa</option>
+                                <option>American Express</option>
+                                <option>Mastercard</option>
+                            </select>
+                            <label><input type="checkbox"> Same as shipping address</label>
+                            <a class="btn btn-primary" href="">Update Shipping & Payment</a>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</lift:surround>
