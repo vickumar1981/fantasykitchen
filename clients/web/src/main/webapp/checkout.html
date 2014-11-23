@@ -1,3 +1,88 @@
 <lift:surround with="default" at="content">
-    Checkout
+        <div class="col-sm-12">
+            <h2 class="title text-center">Checkout</h2>
+        </div>
+        <div class="register-req" data-lift="msgs"></div>
+        <div class="col-sm-4 col-sm-offset-1">
+            <div class="form-one">
+                <h3>Payment Information</h3>
+                <form>
+                    <p>Payment Details</p>
+                    <input type="text" placeholder="Last Name">
+                    <input type="text" placeholder="First Name">
+                    <select>
+                        <option>-- CC Type --</option>
+                        <option>Visa</option>
+                        <option>American Express</option>
+                        <option>Mastercard</option>
+                    </select>
+                    <br /><br />
+                    <input type="text" placeholder="Credit Card #*">
+                    <select>
+                        <option>-- Expiration Month --</option>
+                        <option>Visa</option>
+                        <option>American Express</option>
+                        <option>Mastercard</option>
+                    </select>
+                    <br /><br />
+                    <select>
+                        <option>-- Expiration Year --</option>
+                        <option>Visa</option>
+                        <option>American Express</option>
+                        <option>Mastercard</option>
+                    </select>
+                    <br /><br />
+                    <p>Address</p>
+                    <input type="text" placeholder="Address Line 1*">
+                    <input type="text" placeholder="Address Line 2*">
+                    <input type="text" placeholder="City*">
+                    <input type="text" placeholder="Zip Code*">
+                    <select>
+                        <option>-- State --</option>
+                        <option>United States</option>
+                        <option>Bangladesh</option>
+                        <option>UK</option>
+                        <option>India</option>
+                        <option>Pakistan</option>
+                        <option>Ucrane</option>
+                        <option>Canada</option>
+                        <option>Dubai</option>
+                    </select>
+                </form>
+            </div>
+        </div>
+        <div class="col-sm-1">
+            <h2 class="or">AND</h2>
+        </div>
+        <div class="col-sm-4">
+            <div class="form-two">
+                <form>
+                <h3>Shipping Information</h3>
+                <p>Shipping Address</p>
+                <label><input type="checkbox"> Same as shipping address</label>
+                <input type="text" placeholder="Address Line 1*">
+                <input type="text" placeholder="Address Line 2*">
+                <input type="text" placeholder="City*">
+                <input type="text" placeholder="Zip Code*">
+                <select>
+                    <option>-- State --</option>
+                    <option>United States</option>
+                    <option>Bangladesh</option>
+                    <option>UK</option>
+                    <option>India</option>
+                    <option>Pakistan</option>
+                    <option>Ucrane</option>
+                    <option>Canada</option>
+                    <option>Dubai</option>
+                </select><br /><br />
+                <p>Shipping Notes</p>
+                <textarea name="message"  placeholder="Notes about your order, Special Notes for Delivery"
+                          rows="5"></textarea>
+                <a class="btn btn-primary" href="">Update Shipping & Payment</a>
+                </form>
+            </div>
+        </div>
+        <div class="col-sm-12">
+            &nbsp;
+        </div>
 </lift:surround>

@@ -19,4 +19,4 @@ Kitchen Backend Server
 
     bin/sbt "kitchen-server/run rest/src/main/resources/server.config --import-products"
 
-    ## this will import US zip codes per state, needed before importing locations
+    ## this will import an initial list of products. 
