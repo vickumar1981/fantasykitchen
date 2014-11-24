@@ -1902,15 +1902,14 @@ h2.title {
 
 
 .form-two, .form-one {
-  /*float: left;
-  width: 47% */
 }
 
 
-.shopper-info > form > input, 
-.form-two > form > select, 
-.form-two > form > input, 
-.form-one > form > input {
+.shopper-info > form > input,
+form > #checkoutForm > .col-sm-4 > .form-two > select,
+form > #checkoutForm > .col-sm-4 > .form-two > input,
+form > #checkoutForm > .col-sm-4 > .form-one > select,
+form > #checkoutForm > .col-sm-4 > .form-one > input {
   background:#F0F0E9;
   border: 0 none;
   margin-bottom:10px;
@@ -1919,7 +1918,7 @@ h2.title {
   font-weight: 300
 }
 
-.form-two > form > select {
+form > #checkoutForm > .col-sm-4 > .form-two > select {
   padding:10px 5px
 }
 
