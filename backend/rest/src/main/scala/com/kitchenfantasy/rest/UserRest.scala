@@ -11,6 +11,22 @@ import akka.actor.actorRef2Scala
 class UserRest extends Rest {
   def service: PartialFunction[Request, Response] = {
 
+    case POST("user" :: "info" :: Nil, raw) =>
+      SerializationProvider.read[UserUpdate](raw) match {
+        case (string, Some(update)) =>
+          Users.read(update.credential.email.toLowerCase) match {
+            case Some(u) =>
+              if (u.password.equals(update.credential.password) && u.confirmed) {
+                val newUser = u.copy(address=Some(update.address), credit_cards = Some(List(update.credit_card)))
+                Users.updateUser(newUser)
+                JSONResponse(newUser, 1)
+              }
+              else Error(400, "POST credentials are invalid.")
+            case None => Error(400, "POST credentials are invalid.")
+          }
+        case (string, None) => Error(400, "POST data doesn't conform to type user update.")
+      }
+
     case POST("user" :: "register" :: Nil, raw) =>
       SerializationProvider.read[User](raw) match {
         case (string, Some(register_user)) => {
@@ -46,8 +62,7 @@ class UserRest extends Rest {
           }
         }
 
-        case (string, None) =>
-          Error(400, "POST data doesn't conform to type user.")
+        case (string, None) => Error(400, "POST data doesn't conform to type user.")
       }
 
     case POST("user" :: "login" :: Nil, raw) =>

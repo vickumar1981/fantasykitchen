@@ -36,6 +36,8 @@ object ApiClient {
     else false
   }
 
+  def updateUserInfo (u: UserUpdate) = url(baseUrl + "/user/info").POST.setBody(compact(render(decompose(u))))
+
   def registerUser(u: User) = url(baseUrl + "/user/register").POST.setBody(compact(render(decompose(u))))
 
   def loginUser(u: UserCredential) = url(baseUrl + "/user/login").POST.setBody(compact(render(decompose(u))))

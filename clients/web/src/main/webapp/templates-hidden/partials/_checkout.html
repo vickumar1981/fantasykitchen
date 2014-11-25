@@ -4,20 +4,28 @@
             <div class="form-one">
                 <h4>Update your payment information</h4>
                 <p>Payment Details</p>
+
+                <input type="hidden" id="process_checkout" />
+
+                <span class="lift:msg?id=cc_last_name_err&errorClass=blank-arrow"></span>
                 <input id="last_name" type="text" placeholder="Last Name">
+
+                <span class="lift:msg?id=cc_first_name_err&errorClass=blank-arrow"></span>
                 <input id="first_name" type="text" placeholder="First Name">
-                <select id="cc_type">
-                    <option>-- CC Type --</option>
-                </select>
+
+                <span class="lift:msg?id=cc_type_err&errorClass=blank-arrow"></span>
+                <select id="cc_type"></select>
                 <br /><br />
+
+                <span class="lift:msg?id=cc_no_err&errorClass=blank-arrow"></span>
                 <input id="cc_no" type="text" placeholder="Credit Card #*">
-                <select id="cc_expiry_month">
-                    <option>-- Expiration Month --</option>
-                </select>
+
+                <span class="lift:msg?id=cc_expiry_month_err&errorClass=blank-arrow"></span>
+                <select id="cc_expiry_month"></select>
                 <br /><br />
-                <select id="cc_expiry_year">
-                    <option>-- Expiration Year --</option>
-                </select>
+
+                <span class="lift:msg?id=cc_expiry_year_err&errorClass=blank-arrow"></span>
+                <select id="cc_expiry_year"></select>
             </div>
         </div>
         <div class="col-sm-1">
@@ -27,17 +35,22 @@
             <div class="form-two">
                 <h4>Update your shipping information</h4>
                 <p>Deliver To</p>
+                <span class="lift:msg?id=addr_err&errorClass=blank-arrow"></span>
                 <input id="address1" type="text" placeholder="Address Line 1*">
                 <input id="address2" type="text" placeholder="Address Line 2*">
+                <span class="lift:msg?id=city_err&errorClass=blank-arrow"></span>
                 <input id="city" type="text" placeholder="City*">
+                <span class="lift:msg?id=zip_err&errorClass=blank-arrow"></span>
                 <input id="zip_code" type="text" placeholder="Zip Code*">
-                <select id="states">
-                    <option>-- State --</option>
-                </select><br /><br />
+                <span class="lift:msg?id=state_err&errorClass=blank-arrow"></span>
+                <select id="states"></select>
+                <br /><br />
                 <p>Notes</p>
                 <textarea id="notes" name="message"  placeholder="Notes about your order, Special Notes for Delivery"
                           rows="5"></textarea>
-                <a class="btn btn-primary" href="">Update Payment & Shipping</a>
+                <br/><br/>
+                <button class="btn btn-default" id="updatePayment">Update Payment & Shipping</button>
+                <br/><br/>
             </div>
         </div>
     </div>

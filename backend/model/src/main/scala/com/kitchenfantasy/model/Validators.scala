@@ -9,51 +9,32 @@ object AddressValidator {
   def validateAddress (addr: Address) = {
     val errors = scala.collection.mutable.Map[String,String]()
     if (addr.line1.isEmpty)
-      errors += "billing_addr" -> "Billing address is required."
+      errors += "addr" -> "Address is required."
     else
-      errors += "billing_addr" -> ""
+      errors += "addr" -> ""
 
     if (addr.city.isEmpty)
-      errors += "billing_city" -> "Billing city is required."
+      errors += "city" -> "City is required."
     else
-      errors += "billing_city" -> ""
+      errors += "city" -> ""
 
     if (addr.state.isEmpty)
-      errors += "billing_state" -> "Billing state is required."
+      errors += "state" -> "State is required."
     else
-      errors += "billing_state" -> ""
+      errors += "state" -> ""
 
     if (addr.postalCode.isEmpty)
-      errors += "billing_zip" -> "Billing zip code is required."
+      errors += "zip" -> "Zip code is required."
     else if (!addr.postalCode.isEmpty && !isValidZipCode(addr.postalCode) )
-      errors += "billing_zip" -> "Billing zip code is invalid."
+      errors += "zip" -> "Zip code is invalid."
     else
-      errors += "billing_zip" -> ""
+      errors += "zip" -> ""
 
     errors
   }
 }
 
 object CCValidator {
-  private val dateFormat = DateTimeFormat forPattern "MM/dd/yyyy"
-
-  def toCCExpiryDate (cc_expiry: String): Long = {
-    try {
-      val results = cc_expiry.split('/')
-      (results(2).toLong * 100) + results(0).toLong
-    } catch {
-      case e: Exception => 0
-    }
-  }
-
-  def toCCSecurityCode (cc_code: String): Long = {
-    try {
-      cc_code.toLong
-    } catch {
-      case e: Exception => 0
-    }
-  }
-
   private def checkIfCCIsValid (cc_number: String) = {
     try {
       ( (cc_number.reverse.map { _.toString.toShort }.grouped(2) map {
@@ -65,58 +46,41 @@ object CCValidator {
     }
   }
 
-  private def checkDate(inputDate: String) = {
-    val parseDate = try {
-      Some(dateFormat parseDateTime inputDate)
-    }
-    catch {
-      case e: IllegalArgumentException => None
-    }
-    parseDate match {
-      case None => false
-      case _ => true
-    }
-  }
-
-  private def checkSecurityCode (cc_number: String, cc_code: String) = {
-    try {
-      val firstNumber = cc_code.charAt(0)
-      if (cc_code.trim.matches("^\\d+$")) {
-        if (firstNumber == '3')
-          (cc_code.trim.matches("^\\d{4}$"))
-        else
-          (cc_code.trim.matches("^\\d{3}$"))
-      }
-      else false
-    }
-    catch {
-      case e: Exception => false
-    }
-  }
-
-  def validateCC (cc_number: String, cc_code: String, cc_expiry: String) = {
+  def validateCC (cc: CCInfo) = {
     val errors = scala.collection.mutable.Map[String,String]()
-    if (cc_expiry.isEmpty)
-      errors += "cc_expiry" -> "Credit card expiration date is required."
-    else if (!cc_expiry.isEmpty && !checkDate(cc_expiry) )
-      errors += "cc_expiry" -> "Credit card expiration date is invalid."
+    if (cc.cc_type.isEmpty)
+      errors += "cc_type" -> "Credit card type is required."
     else
-      errors += "cc_expiry" -> ""
+      errors += "cc_type" -> ""
 
-    if (cc_code.isEmpty)
-      errors += "cc_code" -> "Credit card security code is required."
-    else if (!cc_code.isEmpty && !checkSecurityCode(cc_number, cc_code))
-      errors += "cc_code" -> "Credit card security code is invalid."
-    else
-      errors += "cc_code" -> ""
-
-    if (cc_number.isEmpty)
+    if (cc.cc_number.isEmpty)
       errors += "cc_no" -> "Credit card number is required."
-    else if (!cc_number.isEmpty && !checkIfCCIsValid(cc_number.trim.replace("-", "")) )
+    else if (!cc.cc_number.isEmpty && !checkIfCCIsValid(cc.cc_number.trim.replace("-", "")) )
       errors += "cc_no" -> "Credit card number is invalid."
     else
       errors += "cc_no" -> ""
 
+    if (cc.cc_expiry_month == 0)
+      errors += "cc_expiry_month" -> "Expiration month is required."
+    else if (cc.cc_expiry_month < 0 || cc.cc_expiry_month > 12)
+      errors += "cc_expiry_month" -> "Expiration month is invalid."
+    else
+      errors += "cc_expiry_month" -> ""
+
+    if (cc.cc_expiry_year == 0)
+      errors += "cc_expiry_year" -> "Expiration year is required."
+    else
+      errors += "cc_expiry_year" -> ""
+
+    if (cc.last_name.isEmpty)
+      errors += "cc_last_name" -> "Last name is required."
+    else
+      errors += "cc_last_name" -> ""
+
+    if (cc.first_name.isEmpty)
+      errors += "cc_first_name" -> "First name is required."
+    else
+      errors += "cc_first_name" -> ""
     errors
   }
 }

@@ -13,7 +13,8 @@ case class Address(line1: String,
                    city: String,
                    state: String,
                    postalCode: String,
-                   country: String)
+                   country: Option[String] = Some("USA"),
+                   notes: Option[String] = None)
 
 case class Promo (id: String,
                    discount: Double,
@@ -23,9 +24,11 @@ case class Promo (id: String,
 
 case class CCInfo (cc_type: String, cc_number: String, cc_expiry_month: Int,
                     cc_expiry_year: Int, first_name: String, last_name: String,
-                    primary: Boolean)
+                    primary: Boolean = false)
 
 case class UserCredential (email: String, password: String)
+
+case class UserUpdate (credential: UserCredential, address: Address, credit_card: CCInfo)
 
 case class User (email: String, password: String, first_name: String, last_name: String, confirmed: Boolean = false,
                   is_admin: Boolean = false, address: Option[Address] = None, credit_cards: Option[List[CCInfo]] = None,
