@@ -2,7 +2,7 @@ package code
 package snippet
 
 import code.lib.{UserClient, CartViewer}
-import net.liftweb.common.Full
+import net.liftweb.common.{Empty, Full}
 import net.liftweb.http.js.JsCmds._
 import net.liftweb.http.js.{JsCmd, JsCmds}
 import net.liftweb.http.{RequestVar, S, SHtml}
@@ -47,34 +47,18 @@ class Checkout extends CartViewer {
   private val user_cc_info = UserClient.getUserBillingInfo
   private val user_address = UserClient.getUserAddress
 
-  private var last_name = user_cc_info.last_name
-  private var first_name = user_cc_info.first_name
-  private var cc_type = cc_types.find(_.toLowerCase == user_cc_info.cc_type) match {
-    case Some(cc) => cc
-    case _=> "-- CC Type --"
-  }
-  private var cc_no = user_cc_info.cc_number
-
-  private var cc_expiry_month = expiry_months.find(_._2 == user_cc_info.cc_expiry_month) match {
-    case Some(m) => m._1
-    case _ => "-- Expiration Month --"
-  }
-
-  private var cc_expiry_year = expiry_years.find(_._2 == user_cc_info.cc_expiry_year) match {
-    case Some(y) => y._1
-    case _ => "-- Expiration Year --"
-  }
-
-  private var address1 = user_address.line1
-  private var address2 = user_address.line2
-  private var city = user_address.city
-  private var zip = user_address.postalCode
-  private var state = states.find(_._2 == user_address.state) match {
-    case Some(s) => s._1
-    case _ => "-- State --"
-  }
-
-  private var notes = user_address.notes.getOrElse("")
+  private var last_name = ""
+  private var first_name = ""
+  private var cc_type = ""
+  private var cc_no = ""
+  private var cc_expiry_month = ""
+  private var cc_expiry_year = ""
+  private var address1 = ""
+  private var address2 = ""
+  private var city = ""
+  private var zip = ""
+  private var state = ""
+  private var notes = ""
 
   def showCheckout = !checkoutConfirmation.get
 
@@ -102,31 +86,42 @@ class Checkout extends CartViewer {
             S.redirectTo(pageUrl, () => {
               S.notice(renderNotice("Updated user information."))
               checkoutConfirmation(true) })
-          case _ => {
-            S.notice("Error updating account info.")
-            Noop
-          }
+          case _ => S.notice("Error updating account info.")
         }
-      JsCmds.Noop
+      Noop
     }
 
     if (showCheckout) {
-      val cssSel = "#last_name" #> SHtml.text(last_name, last_name = _) &
-        "#first_name" #> SHtml.text(first_name, first_name = _) &
+      val cssSel = "#last_name" #> SHtml.text(user_cc_info.last_name, last_name = _) &
+        "#first_name" #> SHtml.text(user_cc_info.first_name, first_name = _) &
         "#cc_type" #> SHtml.select(cc_types.map(t => ((if (t.toString == "-- CC Type --") ""
         else
-          t.toString) -> t.toString)), Full(cc_type), cc_type = _) &
-        "#cc_no" #> SHtml.text(cc_no, cc_no = _) &
+          t.toString) -> t.toString)),
+          cc_types.find(_.toLowerCase == user_cc_info.cc_type) match {
+          case Some(cc) => Full(cc)
+          case _=> Empty
+        }, cc_type = _) &
+        "#cc_no" #> SHtml.text(user_cc_info.cc_number, cc_no = _) &
         "#cc_expiry_month" #> SHtml.select(expiry_months.toSeq.sortBy(_._2).map(m => (m._1 -> m._1)),
-          Full(cc_expiry_month), cc_expiry_month = _) &
+          expiry_months.find(_._2 == user_cc_info.cc_expiry_month) match {
+            case Some(m) => Full(m._1)
+            case _ => Empty
+          }, cc_expiry_month = _) &
         "#cc_expiry_year" #> SHtml.select(expiry_years.toSeq.sortBy(_._2).map(y => (y._1 -> y._1)),
-          Full(cc_expiry_year), cc_expiry_year = _) &
-        "#address1" #> SHtml.text(address1, address1 = _) &
-        "#address2" #> SHtml.text(address2, address2 = _) &
-        "#city" #> SHtml.text(city, city = _) &
-        "#zip_code" #> SHtml.text(zip, zip = _) &
-        "#notes" #> SHtml.textarea(notes, notes = _) &
-        "#states" #> SHtml.select(states.toSeq.sortBy(_._2).map(s => (s._1 -> s._1)), Full(state), state = _) &
+          expiry_years.find(_._2 == user_cc_info.cc_expiry_year) match {
+            case Some(y) => Full(y._1)
+            case _ => Empty
+          }, cc_expiry_year = _) &
+        "#address1" #> SHtml.text(user_address.line1, address1 = _) &
+        "#address2" #> SHtml.text(user_address.line2, address2 = _) &
+        "#city" #> SHtml.text(user_address.city, city = _) &
+        "#zip_code" #> SHtml.text(user_address.postalCode, zip = _) &
+        "#notes" #> SHtml.textarea(user_address.notes.getOrElse(""), notes = _) &
+        "#states" #> SHtml.select(states.toSeq.sortBy(_._2).map(s => (s._1 -> s._1)),
+          states.find(_._2 == user_address.state) match {
+            case Some(s) => Full(s._1)
+            case _ => Empty
+          }, state = _) &
         "#process_checkout" #> (SHtml.hidden(() => processCheckout))
       cssSel (in)
     }

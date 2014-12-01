@@ -10,8 +10,6 @@
                 <h4>Update your payment information</h4>
                 <p>Payment Details</p>
 
-                <input type="hidden" id="process_checkout" />
-
                 <span class="lift:msg?id=cc_last_name_err&errorClass=blank-arrow"></span>
                 <input id="last_name" type="text" placeholder="Last Name">
 
@@ -54,7 +52,9 @@
                 <textarea id="notes" name="message"  placeholder="Notes about your order, Special Notes for Delivery"
                           rows="5"></textarea>
                 <br/><br/>
-                <button class="btn btn-default" id="updatePayment">Update Payment & Shipping</button>
+
+                <input type="hidden" id="process_checkout" />
+                <button type="submit" class="btn btn-default">Update Payment & Shipping</button>
                 <br/><br/>
             </div>
         </div>
