@@ -1,30 +1,30 @@
 package code
 package snippet
 
-import code.lib.{UserClient, ApiClient, ProductClient}
-import net.liftweb.common.{Empty, Full}
-import net.liftweb.http.{RequestVar, SHtml, TransientRequestVar}
-import net.liftweb.http.js.{JsCmd, JsCmds}
+import code.lib.{UserClient, CartViewer}
+import net.liftweb.common.Full
 import net.liftweb.http.js.JsCmds._
-import net.liftweb.util.CssSel
+import net.liftweb.http.js.{JsCmd, JsCmds}
+import net.liftweb.http.{RequestVar, S, SHtml}
 
-import net.liftweb.http.S
 import scala.xml.NodeSeq
 
 import com.kitchenfantasy.model._
 import net.liftweb.util.Helpers.strToCssBindPromoter
-
 import java.util.Calendar
 
-class Checkout {
+class Checkout extends CartViewer {
+  private lazy val pageUrl = "/checkout"
+
+  private object checkoutConfirmation extends RequestVar[(Boolean)](false)
 
   private def renderNotice(msg: String) = <div class='register-req'><p>{msg}</p></div>
   private def renderError(msg: String) = <label>{msg}</label>
 
   lazy val currentYear = Calendar.getInstance().get(Calendar.YEAR)
 
-  private val cc_types: List[String] = List("-- CC Type --", "Visa", "Amex", "Mastercard", "Discover")
-  private val states: Map[String, String] = Map("-- State --" -> "", "Alabama" -> "AL", "Alaska" -> "AK",
+  private lazy val cc_types: List[String] = List("-- CC Type --", "Visa", "Amex", "Mastercard", "Discover")
+  private lazy val states: Map[String, String] = Map("-- State --" -> "", "Alabama" -> "AL", "Alaska" -> "AK",
     "Arizona" -> "AZ", "Arkansas" -> "AK", "California" -> "CA", "Colorado" -> "CO", "Connecticut" -> "CT",
     "Delaware" -> "DE", "District of Columbia" -> "DC", "Florida" -> "FL", "Georgia" -> "GA",
     "Hawaii" -> "HI", "Idaho" -> "ID", "Illinois" -> "IL", "Indiana" -> "IN", "Iowa" -> "IA",
@@ -37,28 +37,50 @@ class Checkout {
     "Texas" -> "TX", "Utah" -> "UT", "Vermont" -> "VT", "Virginia" -> "VA", "Washington" -> "WA",
     "West Virginia" -> "WV", "Wisconsin" -> "WI", "Wyoming" -> "WY")
 
-  private val expiry_months: Map[String, Int] = Map("-- Expiration Month --" -> 0, "January" -> 1,
+  private lazy val expiry_months: Map[String, Int] = Map("-- Expiration Month --" -> 0, "January" -> 1,
     "February" -> 2, "March" -> 3, "April" -> 4, "May" -> 5, "June" -> 6, "July" -> 7, "August" -> 8,
     "September" -> 9, "October" -> 10, "November" -> 11, "December" -> 12)
 
-  private val expiry_years: Map[String, Int] =  Map("-- Expiration Year --" -> 0) ++ ((currentYear to (currentYear+10)).map(i => (i.toString, i))).toMap
+  private lazy val expiry_years: Map[String, Int] =  Map("-- Expiration Year --" -> 0) ++
+    ((currentYear to (currentYear+10)).map(i => (i.toString, i))).toMap
 
-  private var last_name = ""
-  private var first_name = ""
-  private var cc_type = ""
-  private var cc_no = ""
-  private var cc_expiry_month = ""
-  private var cc_expiry_year = ""
+  private val user_cc_info = UserClient.getUserBillingInfo
+  private val user_address = UserClient.getUserAddress
 
-  private var address1 = ""
-  private var address2 = ""
-  private var city = ""
-  private var zip = ""
-  private var state = ""
-  private var notes = ""
+  private var last_name = user_cc_info.last_name
+  private var first_name = user_cc_info.first_name
+  private var cc_type = cc_types.find(_.toLowerCase == user_cc_info.cc_type) match {
+    case Some(cc) => cc
+    case _=> "-- CC Type --"
+  }
+  private var cc_no = user_cc_info.cc_number
 
-  def checkout = {
+  private var cc_expiry_month = expiry_months.find(_._2 == user_cc_info.cc_expiry_month) match {
+    case Some(m) => m._1
+    case _ => "-- Expiration Month --"
+  }
 
+  private var cc_expiry_year = expiry_years.find(_._2 == user_cc_info.cc_expiry_year) match {
+    case Some(y) => y._1
+    case _ => "-- Expiration Year --"
+  }
+
+  private var address1 = user_address.line1
+  private var address2 = user_address.line2
+  private var city = user_address.city
+  private var zip = user_address.postalCode
+  private var state = states.find(_._2 == user_address.state) match {
+    case Some(s) => s._1
+    case _ => "-- State --"
+  }
+
+  private var notes = user_address.notes.getOrElse("")
+
+  def showCheckout = !checkoutConfirmation.get
+
+  def showConfirmation = checkoutConfirmation.get
+
+  def checkout (in: NodeSeq) : NodeSeq = {
     def processCheckout: JsCmd = {
       val a = Address(address1, address2, city,
         if (state.isEmpty) "" else states(state), zip, Some("USA"), Some(notes))
@@ -77,7 +99,9 @@ class Checkout {
       else
         UserClient.updateUserInfo(a, ccInfo) match {
           case Some (u) =>
-            S.notice("updated info...")
+            S.redirectTo(pageUrl, () => {
+              S.notice(renderNotice("Updated user information."))
+              checkoutConfirmation(true) })
           case _ => {
             S.notice("Error updating account info.")
             Noop
@@ -86,21 +110,32 @@ class Checkout {
       JsCmds.Noop
     }
 
-    "#last_name" #> SHtml.text(last_name, last_name = _) &
-      "#first_name" #> SHtml.text(first_name, first_name = _) &
-      "#cc_type" #> SHtml.select(cc_types.map(t => ((if (t.toString == "-- CC Type --") "" else
-        t.toString) -> t.toString)), Empty, cc_type = _) &
-      "#cc_no" #> SHtml.text(cc_no, cc_no = _) &
-      "#cc_expiry_month" #> SHtml.select(expiry_months.toSeq.sortBy(_._2).map (m=>(m._1 -> m._1)),
-        Empty, cc_expiry_month = _) &
-      "#cc_expiry_year" #> SHtml.select(expiry_years.toSeq.sortBy(_._2).map(y=>(y._1 -> y._1)),
-        Empty, cc_expiry_year = _) &
-      "#address1" #> SHtml.text(address1, address1 = _) &
-      "#address2" #> SHtml.text(address2, address2 = _) &
-      "#city" #> SHtml.text(city, city = _) &
-      "#zip_code" #> SHtml.text(zip, zip = _) &
-      "#notes" #> SHtml.textarea(notes, notes = _) &
-      "#states" #> SHtml.select(states.toSeq.sortBy(_._2).map(s => (s._1 -> s._1)), Empty, state = _) &
-      "#process_checkout" #> (SHtml.hidden(() => processCheckout))
+    if (showCheckout) {
+      val cssSel = "#last_name" #> SHtml.text(last_name, last_name = _) &
+        "#first_name" #> SHtml.text(first_name, first_name = _) &
+        "#cc_type" #> SHtml.select(cc_types.map(t => ((if (t.toString == "-- CC Type --") ""
+        else
+          t.toString) -> t.toString)), Full(cc_type), cc_type = _) &
+        "#cc_no" #> SHtml.text(cc_no, cc_no = _) &
+        "#cc_expiry_month" #> SHtml.select(expiry_months.toSeq.sortBy(_._2).map(m => (m._1 -> m._1)),
+          Full(cc_expiry_month), cc_expiry_month = _) &
+        "#cc_expiry_year" #> SHtml.select(expiry_years.toSeq.sortBy(_._2).map(y => (y._1 -> y._1)),
+          Full(cc_expiry_year), cc_expiry_year = _) &
+        "#address1" #> SHtml.text(address1, address1 = _) &
+        "#address2" #> SHtml.text(address2, address2 = _) &
+        "#city" #> SHtml.text(city, city = _) &
+        "#zip_code" #> SHtml.text(zip, zip = _) &
+        "#notes" #> SHtml.textarea(notes, notes = _) &
+        "#states" #> SHtml.select(states.toSeq.sortBy(_._2).map(s => (s._1 -> s._1)), Full(state), state = _) &
+        "#process_checkout" #> (SHtml.hidden(() => processCheckout))
+      cssSel (in)
+    }
+    else NodeSeq.Empty
+  }
+
+  def confirm (in: NodeSeq): NodeSeq = {
+    if (showConfirmation)
+      renderCart(in)
+    else NodeSeq.Empty
   }
 }

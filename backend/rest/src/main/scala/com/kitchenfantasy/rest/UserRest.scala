@@ -33,7 +33,7 @@ class UserRest extends Rest {
           val email = register_user.email.toLowerCase
           if (Users.hasKey(email))
             Error(400, "User '" + email + "' already exists.  Unable to register.")
-          else {
+          else
             register_user.invite_code match {
               case None => {
                 println("\nRegistering user '" + email + "'\n")
@@ -43,7 +43,7 @@ class UserRest extends Rest {
                 emailSender ! SendRegistrationEmail(invite)
                 JSONResponse(register_user.copy(confirmed = false), 1)
               }
-              case Some(code) => {
+              case Some(code) =>
                 InviteCodes.read(email) match {
                   case None => Error(404, "No invite code found for user '" + email + "'.")
                   case Some(invite) => {
@@ -57,11 +57,8 @@ class UserRest extends Rest {
                     else Error (404, "The invite code is invalid.")
                   }
                 }
-              }
             }
-          }
         }
-
         case (string, None) => Error(400, "POST data doesn't conform to type user.")
       }
 

@@ -10,8 +10,35 @@ import net.liftweb.common.{Full, Empty}
 object UserClient extends UserCookieManager {
   private implicit val formats = DefaultFormats
 
+  def getUserAddress (): Address = {
+    val emptyAddress = Address("", "", "", "", "")
+    if (currentUser.isDefined)
+      currentUser.get match {
+        case Full(u) => u.address.getOrElse(emptyAddress)
+        case _ => emptyAddress
+      }
+    else emptyAddress
+  }
+
+  def getUserBillingInfo (): CCInfo = {
+    val emptyCCInfo = CCInfo("", "", 0, 0, "", "")
+    if (currentUser.isDefined)
+      currentUser.get match {
+        case Full(u) =>
+          u.credit_cards match {
+            case Some(cc_list) =>
+              if (cc_list.size > 0)
+                cc_list(0)
+              else emptyCCInfo
+            case _ => emptyCCInfo
+          }
+        case _ => emptyCCInfo
+      }
+    else emptyCCInfo
+  }
+
   def updateUserInfo (a: Address, c: CCInfo): Option[ApiUser] = {
-    if (currentUser.isDefined) {
+    if (currentUser.isDefined)
       currentUser.get match {
         case Full(u) => {
           val credential = UserCredential (u.email, u.password)
@@ -29,7 +56,6 @@ object UserClient extends UserCookieManager {
         }
         case _ => None
       }
-    }
     else None
   }
 
