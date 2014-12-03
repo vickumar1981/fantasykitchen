@@ -8,14 +8,18 @@ import net.liftweb.http.js.JsCmds.SetHtml
 import net.liftweb.util.CssSel
 
 import net.liftweb.util.Helpers.strToCssBindPromoter
-import com.kitchenfantasy.model.Product
+import com.kitchenfantasy.model.{Product, OrderValidator}
 
 
 trait CartViewer {
 
-  private def renderShoppingCart = SHtml.memoize { renderCart }
+  protected object checkoutConfirmation extends RequestVar[(Boolean)](false)
 
+  private def renderShoppingCart = SHtml.memoize { renderCart }
   private object shoppingCartTemplate extends RequestVar(renderShoppingCart)
+
+  def showCheckout = !checkoutConfirmation.get
+  def showConfirmation = checkoutConfirmation.get
 
   private def noProductsInCart = <b>There are no items in your cart.</b>
 
@@ -41,7 +45,10 @@ trait CartViewer {
       "#cart_item_price *" #> formatPrice (p.price) &
       ".cart_total_price *" #> formatPrice (p.price * p.qty.getOrElse(0)) &
       "#cart_item_desc *" #> p.description &
-      ".cart_quantity_input [value]" #> p.qty.getOrElse(1) &
+      (if (showConfirmation)
+        "#cart_quantity *" #> p.qty.getOrElse(1)
+       else
+        ".cart_quantity_input [value]" #> p.qty.getOrElse(1) ) &
       ".cart_quantity_delete [onclick]" #> SHtml.ajaxInvoke(() => {
         ProductClient.deleteProductFromCart(p)
         SetHtml("cart_item", shoppingCartTemplate.is.applyAgain)
@@ -56,9 +63,7 @@ trait CartViewer {
       })
 
   private def showOrderSummary (order: List[Product]) = {
-    val subtotal: Long = order.map { p => (p.price * p.qty.getOrElse(0)) }.sum
-    val tax: Long = (subtotal * 5) / 100
-    val total = subtotal + tax
+    val (total, subtotal, tax) = OrderValidator.orderTotals(order)
     ".order_subtotal *" #> ("Subtotal: " + formatPrice(subtotal)) &
       ".order_tax *" #> ("Tax: " + formatPrice(tax)) &
       ".order_total *" #> ("Total: " + formatPrice(total))

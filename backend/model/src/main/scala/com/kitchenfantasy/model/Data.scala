@@ -5,7 +5,7 @@ case class Product (id: String,
                      description: String,
                      price: Long,
                      imageUrl: String,
-                     active: Boolean,
+                     active: Boolean = true,
                      qty: Option[Int] = None)
 
 case class Address(line1: String,
@@ -20,7 +20,7 @@ case class Promo (id: String,
                    discount: Double,
                    email: Option[String] = None,
                    product_id: Option[String] = None,
-                   used: Boolean)
+                   used: Boolean = false)
 
 case class CCInfo (cc_type: String, cc_number: String, cc_expiry_month: Int,
                     cc_expiry_year: Int, first_name: String, last_name: String,
@@ -36,6 +36,9 @@ case class User (email: String, password: String, first_name: String, last_name:
 
 case class InviteCode (user: User, code: String)
 
-case class Order (id: String, email: String, credit_card: CCInfo, address: Address,
-                  order: List[Product], tax_rate: Double, total: Option[Double] = None,
-                  promo: Option[Promo] = None)
+case class Transaction (credential: UserCredential, order: List[Product])
+
+case class Order (email: String, credit_card: CCInfo, address: Address,
+                  order: List[Product], total: Option[Long] = None,
+                  subtotal: Option[Long] = None, tax: Option[Long] = None,
+                  promo: Option[Promo] = None, timestamp: Option[Long] = None, id: Option[String] = None)

@@ -15,9 +15,6 @@ import java.util.Calendar
 
 class Checkout extends CartViewer {
   private lazy val pageUrl = "/checkout"
-
-  private object checkoutConfirmation extends RequestVar[(Boolean)](false)
-
   private def renderNotice(msg: String) = <div class='register-req'><p>{msg}</p></div>
   private def renderError(msg: String) = <label>{msg}</label>
 
@@ -60,10 +57,6 @@ class Checkout extends CartViewer {
   private var state = ""
   private var notes = ""
 
-  def showCheckout = !checkoutConfirmation.get
-
-  def showConfirmation = checkoutConfirmation.get
-
   def checkout (in: NodeSeq) : NodeSeq = {
     def processCheckout: JsCmd = {
       val a = Address(address1, address2, city,
@@ -86,7 +79,7 @@ class Checkout extends CartViewer {
             S.redirectTo(pageUrl, () => {
               S.notice(renderNotice("Updated user information."))
               checkoutConfirmation(true) })
-          case _ => S.notice("Error updating account info.")
+          case _ => S.notice(renderNotice("Error updating account info."))
         }
       Noop
     }

@@ -11,6 +11,8 @@ object Products extends RiakMapper[Product]("kitchen-products") {
     id
   }
 
+  def findProducts = findByIndex("active", "true")
+
   def createProduct (product: Product) {
     val id = create (product.id, product)
     addIndexes(id, product)
@@ -19,5 +21,5 @@ object Products extends RiakMapper[Product]("kitchen-products") {
   def updateProduct (id: String, product: Product) {
     update (id, product)
     addIndexes(id, product)
-  }    
+  }
 }

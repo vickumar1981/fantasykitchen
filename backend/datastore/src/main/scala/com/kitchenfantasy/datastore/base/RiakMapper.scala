@@ -46,20 +46,17 @@ class RiakMapper[T : Manifest](bucketName: String) {
     bucket.store(obj).execute()
   }
 
-  private def convertToProduct = {
-    new JSSourceFunction(
-      "function(value, keyData, arg) {" +
+  private def toJSData = new JSSourceFunction(
+        "function(value, keyData, arg) {" +
         "var data = Riak.mapValuesJson(value)[0];" +
-        "return [data];" +
-        "}");
-  }
+        "return [data];}")
 
-  def findProducts = {
-    val activeProducts = new BinValueQuery(BinIndex.named("active"), bucketName, "true")
-    val results = DataProvider.client.mapReduce(activeProducts).addMapPhase(convertToProduct, true).execute().getResultRaw()
+  def findByIndex (indexName: String, indexValue: String): List[T] = {
+    val query = new BinValueQuery(BinIndex.named(indexName), bucketName, indexValue)
+    val results = DataProvider.client.mapReduce(query).addMapPhase(toJSData, true).execute().getResultRaw()
     SerializationProvider.fromStringToJson[List[T]](results)
   }
-  
+
   def create (id: String, value: T): String = {
     bucket.store(id, toRiak(value)).execute()
     id

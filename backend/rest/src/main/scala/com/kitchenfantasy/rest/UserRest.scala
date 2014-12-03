@@ -1,5 +1,6 @@
 package com.kitchenfantasy.rest
 
+import com.kitchenfantasy.KitchenRestAuth
 import com.kitchenfantasy.datastore.{Users, InviteCodes}
 import com.kitchenfantasy.jobs._
 import com.kitchenfantasy.model._
@@ -8,22 +9,16 @@ import com.kitchenfantasy.server.api._
 import akka.actor.Props
 import akka.actor.actorRef2Scala
 
-class UserRest extends Rest {
+class UserRest extends Rest with KitchenRestAuth {
   def service: PartialFunction[Request, Response] = {
-
     case POST("user" :: "info" :: Nil, raw) =>
       SerializationProvider.read[UserUpdate](raw) match {
         case (string, Some(update)) =>
-          Users.read(update.credential.email.toLowerCase) match {
-            case Some(u) =>
-              if (u.password.equals(update.credential.password) && u.confirmed) {
-                val newUser = u.copy(address=Some(update.address), credit_cards = Some(List(update.credit_card)))
-                Users.updateUser(newUser)
-                JSONResponse(newUser, 1)
-              }
-              else Error(400, "POST credentials are invalid.")
-            case None => Error(400, "POST credentials are invalid.")
-          }
+          authorizeCredentials(update.credential, (u) => {
+            val newUser = u.copy(address=Some(update.address), credit_cards = Some(List(update.credit_card)))
+            Users.updateUser(newUser)
+            JSONResponse(newUser, 1)
+          })
         case (string, None) => Error(400, "POST data doesn't conform to type user update.")
       }
 

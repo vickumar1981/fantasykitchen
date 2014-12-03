@@ -3,6 +3,15 @@ package com.kitchenfantasy.model
 import org.joda.time.format._
 import org.mindrot.jbcrypt.BCrypt
 
+object OrderValidator {
+  def orderTotals (order: List[Product]): (Long, Long, Long) = {
+    val subtotal: Long = order.map { p => (p.price * p.qty.getOrElse(0)) }.sum
+    val tax: Long = (subtotal * 5) / 100
+    val total = subtotal + tax
+    (total, subtotal, tax)
+  }
+}
+
 object AddressValidator {
   private def isValidZipCode(zip: String): Boolean = zip.matches("^\\d{5}(?:[-\\s]\\d{4})?$")
 

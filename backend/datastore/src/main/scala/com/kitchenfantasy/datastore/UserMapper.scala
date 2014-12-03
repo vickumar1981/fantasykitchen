@@ -6,6 +6,8 @@ import com.kitchenfantasy.model.User
 object Users extends RiakMapper[User]("kitchen-users") {
   private def addIndexes (u: User) = {
     addIndex (u.email.toLowerCase, "email", u.email.toLowerCase)
+    addIndex (u.email.toLowerCase, "confirmed", u.confirmed.toString.toLowerCase)
+    addIndex (u.email.toLowerCase, "is_admin", u.is_admin.toString.toLowerCase)
     u.email.toLowerCase
   }
 
