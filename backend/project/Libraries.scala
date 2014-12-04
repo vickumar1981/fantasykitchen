@@ -6,6 +6,8 @@ object Libraries {
   lazy val scalaz = "org.scalaz" %% "scalaz-core" % Versions.scalaz
   lazy val typesafeConfig = "com.typesafe" % "config" % Versions.typesafeConfig
 
+  lazy val paypalCore = "com.paypal.sdk" % "paypal-core" % Versions.paypalCore
+  lazy val paypalApi = "com.paypal.sdk" % "rest-api-sdk" % Versions.paypalApi
   lazy val javaxMail = "com.sun.mail" % "javax.mail" % Versions.javaxMail
 
   lazy val servletApi = "org.eclipse.jetty.orbit" % "javax.servlet" % Versions.servletApi
@@ -15,9 +17,6 @@ object Libraries {
   lazy val riakClient = "com.basho.riak" % "riak-client" % Versions.riakClient
   
   lazy val jodaConvert = "org.joda" % "joda-convert" % Versions.jodaConvert
-
-  lazy val selenium = "org.seleniumhq.selenium" % "selenium-java" % Versions.selenium
-  lazy val tagSoup = "org.ccil.cowan.tagsoup" % "tagsoup" % Versions.tagSoup
 
   lazy val akkaActor = "com.typesafe.akka" % "akka-actor_2.11" % Versions.akkaActor
 

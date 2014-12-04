@@ -14,6 +14,6 @@ object KitchenServer extends BaseModule {
 
   def project = baseProject dependsOn (serverApi, rest)
 
-  lazy val libraries = Seq (jetty.server, servletApi, commonsIO, typesafeConfig, riakClient, jodaConvert, akkaActor, tagSoup, selenium)
+  lazy val libraries = Seq (jetty.server, servletApi, commonsIO, typesafeConfig, riakClient, jodaConvert, akkaActor)
 }
 

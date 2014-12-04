@@ -11,6 +11,6 @@ object KitchenRest extends BaseModule {
 
   def project = baseProject dependsOn (serverApi, model, datastore)
 
-  lazy val libraries = Seq (typesafeConfig, akkaActor, javaxMail)
+  lazy val libraries = Seq (typesafeConfig, akkaActor, javaxMail, paypalCore, paypalApi)
 }
 

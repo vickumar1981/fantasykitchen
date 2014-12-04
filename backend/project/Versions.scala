@@ -10,9 +10,9 @@ object Versions {
   val commonsIO = "1.3.2"
   val liftJson = "2.6-M4"
 
+  val paypalCore = "1.6.5"
+  val paypalApi = "0.12.1"
   val javaxMail = "1.5.2"
-  val selenium = "2.43.1"
-  val tagSoup = "1.2.1"
   val akkaActor = "2.3.6"
   val riakClient = "1.4.4"
   val jbCrypt = "0.3m"
