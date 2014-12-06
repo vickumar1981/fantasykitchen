@@ -1,23 +1,25 @@
 package com.kitchenfantasy.datastore
 
 import com.kitchenfantasy.datastore.base.RiakMapper
-import com.kitchenfantasy.model.User
+import com.kitchenfantasy.model.{InviteCode, UserUpdate, User}
 
 object Users extends RiakMapper[User]("kitchen-users") {
-  private def addIndexes (u: User) = {
+  private def addIndexes (u: User): User = {
     addIndex (u.email.toLowerCase, "email", u.email.toLowerCase)
     addIndex (u.email.toLowerCase, "confirmed", u.confirmed.toString.toLowerCase)
     addIndex (u.email.toLowerCase, "is_admin", u.is_admin.toString.toLowerCase)
-    u.email.toLowerCase
+    u
   }
 
-  def createUser (u: User) {
-    val id = create (u.email.toLowerCase, u)
-    addIndexes (u)
+  def createUser (invite: InviteCode): User = {
+    val newUser = invite.user.copy(confirmed = true, invite_code = Some(invite.code))
+    val id = create (newUser.email.toLowerCase, newUser)
+    addIndexes (newUser)
   }
 
-  def updateUser (u: User) {
-    update (u.email.toLowerCase, u)
-    addIndexes (u)
+  def updateUser (u: User, info: UserUpdate): User = {
+    val newUser = u.copy(address=Some(info.address), credit_cards = Some(List(info.credit_card)))
+    update (u.email.toLowerCase, newUser)
+    addIndexes (newUser)
   }
 }

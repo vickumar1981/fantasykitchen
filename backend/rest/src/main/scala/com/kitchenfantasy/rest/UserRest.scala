@@ -15,9 +15,7 @@ class UserRest extends Rest with KitchenRestAuth {
       SerializationProvider.read[UserUpdate](raw) match {
         case (string, Some(update)) =>
           authorizeCredentials(update.credential, (u) => {
-            val newUser = u.copy(address=Some(update.address), credit_cards = Some(List(update.credit_card)))
-            Users.updateUser(newUser)
-            JSONResponse(newUser, 1)
+            JSONResponse(Users.updateUser(u, update), 1)
           })
         case (string, None) => Error(400, "POST data doesn't conform to type user update.")
       }
@@ -36,7 +34,7 @@ class UserRest extends Rest with KitchenRestAuth {
                 val emailSender = JobSettings.processor.actorOf(Props[SendEmailJob],
                   "register_user_" + "_" + invite.code)
                 emailSender ! RegistrationEmail(invite)
-                JSONResponse(register_user.copy(confirmed = false), 1)
+                JSONResponse(invite.user.copy(confirmed = false), 1)
               }
               case Some(code) =>
                 InviteCodes.read(email) match {
@@ -44,8 +42,7 @@ class UserRest extends Rest with KitchenRestAuth {
                   case Some(invite) => {
                     if (code.equals(invite.code)) {
                       println("\nVerifying user '" + email + "'\n")
-                      val newUser = invite.user.copy(confirmed = true, invite_code = Some(invite.code))
-                      Users.createUser(newUser)
+                      val newUser = Users.createUser(invite)
                       InviteCodes.delete(email)
                       JSONResponse(newUser, 1)
                     }

@@ -32,11 +32,11 @@ class ProductsRest extends Rest with KitchenRestAuth {
                   val (total, subtotal, tax) = OrderValidator.orderTotals(products)
                   val o = Order(u.email, u.credit_cards.get(0), u.address.get, products,
                     Some(total), Some(subtotal), Some(tax))
-                  val order_id = Orders.createOrder(o).toString
+                  val newOrder = Orders.createOrder(o)
                   val emailSender = JobSettings.processor.actorOf(Props[SendEmailJob],
-                    "confirm_order" + "_" + order_id)
-                  emailSender ! OrderConfirmationEmail(o.copy(id=Some(order_id)))
-                  JSONResponse(o, 1)
+                    "confirm_order" + "_" + newOrder.id.getOrElse(System.currentTimeMillis.toString))
+                  emailSender ! OrderConfirmationEmail(newOrder)
+                  JSONResponse(newOrder, 1)
                 }
                 else Error(400, "There are no products listed in the order.")
               }
