@@ -17,22 +17,12 @@ import scala.collection.immutable.HashMap
 
 case class ProcessCCPayment (order: Order)
 
-object CCPaymentSettings {
-  lazy val processor = ActorSystem("OrderProcessor")
-
-  lazy val config = GlobalConfiguration.config
-
-  lazy val paypalMode: String = config.getString("paypal.mode")
-  lazy val paypalClientId: String = config.getString("paypal.client_id")
-  lazy val paypalClientSecret: String = config.getString("email.client_secret")
-}
-
 class CCPaymentJob extends Actor {
 
   private def processCCPayment(order: Order) = {
-    val sdkConfig = Map("mode" -> CCPaymentSettings.paypalMode)
+    val sdkConfig = Map("mode" -> JobSettings.payment.paypalMode)
     val paypalConfig = mapAsJavaMap(sdkConfig).asInstanceOf[java.util.Map[java.lang.String, java.lang.String]]
-    val token = new OAuthTokenCredential(CCPaymentSettings.paypalClientId, CCPaymentSettings.paypalClientId,
+    val token = new OAuthTokenCredential(JobSettings.payment.paypalClientId, JobSettings.payment.paypalClientId,
         paypalConfig)
     val apiContext = new APIContext("Bearer " + token.getAccessToken)
     apiContext.setConfigurationMap(paypalConfig)

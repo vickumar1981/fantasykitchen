@@ -33,9 +33,9 @@ class UserRest extends Rest with KitchenRestAuth {
               case None => {
                 println("\nRegistering user '" + email + "'\n")
                 val invite = InviteCodes.createInviteCode(register_user.copy(email=email))
-                val emailSender = EmailSettings.processor.actorOf(Props[SendEmailJob],
-                  "register_user" + "_" + System.currentTimeMillis.toString)
-                emailSender ! SendRegistrationEmail(invite)
+                val emailSender = JobSettings.processor.actorOf(Props[SendEmailJob],
+                  "register_user_" + "_" + invite.code)
+                emailSender ! RegistrationEmail(invite)
                 JSONResponse(register_user.copy(confirmed = false), 1)
               }
               case Some(code) =>

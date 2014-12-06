@@ -4,6 +4,12 @@ import org.joda.time.format._
 import org.mindrot.jbcrypt.BCrypt
 
 object OrderValidator {
+  def formatPrice (price: Long) = {
+    val dollars = (price / 100)
+    val cents = (price % 100)
+    ("$" + dollars + "." + (if (cents < 10) "0" + cents else cents))
+  }
+
   def orderTotals (order: List[Product]): (Long, Long, Long) = {
     val subtotal: Long = order.map { p => (p.price * p.qty.getOrElse(0)) }.sum
     val tax: Long = (subtotal * 5) / 100

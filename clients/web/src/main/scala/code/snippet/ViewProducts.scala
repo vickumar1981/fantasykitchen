@@ -7,7 +7,7 @@ import net.liftweb.http.SHtml
 import scala.xml.NodeSeq
 
 import net.liftweb.util.Helpers.strToCssBindPromoter
-import com.kitchenfantasy.model.Product
+import com.kitchenfantasy.model.{Product, OrderValidator}
 
 class ViewProducts extends CartViewer {
   private def noProductsErrMsg = <b>There are no products.</b>
@@ -17,7 +17,7 @@ class ViewProducts extends CartViewer {
 
   private def showProductItem (p: Product) =
     "#productImage [src]" #> p.imageUrl &
-      "#productPrice *" #>  formatPrice (p.price) &
+      "#productPrice *" #>  OrderValidator.formatPrice (p.price) &
       "#productDesc *" #> p.description &
       "#addToCart [onclick]" #> SHtml.ajaxInvoke (() => addProductToCart(p))
 

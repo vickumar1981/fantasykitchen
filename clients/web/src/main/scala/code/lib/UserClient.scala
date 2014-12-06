@@ -43,7 +43,7 @@ object UserClient extends UserCookieManager {
         case Full(u) => {
           val credential = UserCredential (u.email, u.password)
           val update = UserUpdate (credential, a, c)
-          val result = Http(ApiClient.updateUserInfo(update) OK as.String).either
+          val result = Http(ApiClient.user.updateInfo(update) OK as.String).either
           result() match {
             case Right(content) => {
               println ("\nUpdating user info " + u.email + "\n")
@@ -60,7 +60,7 @@ object UserClient extends UserCookieManager {
   }
 
   def registerUser (u: User): Option[ApiUser] = {
-    val result = Http(ApiClient.registerUser(u) OK as.String).either
+    val result = Http(ApiClient.user.register(u) OK as.String).either
     result() match {
       case Right(content) => {
         println ("\nRegistering user " + u.email + "\n")
@@ -73,7 +73,7 @@ object UserClient extends UserCookieManager {
   }
 
   def loginUser (u: UserCredential): Option[ApiUser] = {
-    val result = Http(ApiClient.loginUser(u) OK as.String).either
+    val result = Http(ApiClient.user.login(u) OK as.String).either
     result() match {
       case Right(content) => {
         println("\nLogging in " + u.email + "\n")

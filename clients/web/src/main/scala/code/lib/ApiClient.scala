@@ -15,6 +15,7 @@ import net.liftweb.json.Printer._
 case class ApiUser(data: User, rows: Integer)
 case class ApiError(statusCode: Int, description: String)
 case class ApiProduct(data: List[Product], rows: Integer)
+case class ApiOrder(data: Order, rows: Integer)
 
 object ApiClient {
 
@@ -36,11 +37,15 @@ object ApiClient {
     else false
   }
 
-  def updateUserInfo (u: UserUpdate) = url(baseUrl + "/user/info").POST.setBody(compact(render(decompose(u))))
+  object user {
+    def updateInfo(u: UserUpdate) = url(baseUrl + "/user/info").POST.setBody(compact(render(decompose(u))))
+    def register(u: User) = url(baseUrl + "/user/register").POST.setBody(compact(render(decompose(u))))
+    def login(u: UserCredential) = url(baseUrl + "/user/login").POST.setBody(compact(render(decompose(u))))
+  }
 
-  def registerUser(u: User) = url(baseUrl + "/user/register").POST.setBody(compact(render(decompose(u))))
+  object products {
+    def view = url(baseUrl + "/products/").GET
+    def order(t: Transaction) = url(baseUrl + "/products/orders").POST.setBody(compact(render(decompose(t))))
+  }
 
-  def loginUser(u: UserCredential) = url(baseUrl + "/user/login").POST.setBody(compact(render(decompose(u))))
-
-  def viewProducts = url(baseUrl + "/products/").GET
 }

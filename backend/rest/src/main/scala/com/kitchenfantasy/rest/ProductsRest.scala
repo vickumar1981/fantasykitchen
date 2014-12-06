@@ -1,7 +1,9 @@
 package com.kitchenfantasy.rest
 
+import akka.actor.Props
 import com.kitchenfantasy.KitchenRestAuth
 import com.kitchenfantasy.datastore.{Products, Orders}
+import com.kitchenfantasy.jobs.{OrderConfirmationEmail, RegistrationEmail, SendEmailJob, JobSettings}
 import com.kitchenfantasy.model._
 import com.kitchenfantasy.server.SerializationProvider
 import com.kitchenfantasy.server.api._
@@ -30,8 +32,11 @@ class ProductsRest extends Rest with KitchenRestAuth {
                   val (total, subtotal, tax) = OrderValidator.orderTotals(products)
                   val o = Order(u.email, u.credit_cards.get(0), u.address.get, products,
                     Some(total), Some(subtotal), Some(tax))
-                  Orders.createOrder(o)
-                  JSONResponse(transaction.copy(order=products), 1)
+                  val order_id = Orders.createOrder(o).toString
+                  val emailSender = JobSettings.processor.actorOf(Props[SendEmailJob],
+                    "confirm_order" + "_" + order_id)
+                  emailSender ! OrderConfirmationEmail(o.copy(id=Some(order_id)))
+                  JSONResponse(o, 1)
                 }
                 else Error(400, "There are no products listed in the order.")
               }

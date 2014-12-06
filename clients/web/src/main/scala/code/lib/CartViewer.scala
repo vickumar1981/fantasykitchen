@@ -33,17 +33,11 @@ trait CartViewer {
     SetHtml("cart_count", <span>{ProductClient.updateCartText}</span>)
   }
 
-  protected def formatPrice (price: Long) = {
-    val dollars = (price / 100)
-    val cents = (price % 100)
-    ("$" + dollars + "." + (if (cents < 10) "0" + cents else cents))
-  }
-
   private def showCartItem (p: Product): CssSel =
     "#cart_image [src]" #> p.imageUrl &
       "#cart_item_name *" #>  p.name &
-      "#cart_item_price *" #> formatPrice (p.price) &
-      ".cart_total_price *" #> formatPrice (p.price * p.qty.getOrElse(0)) &
+      "#cart_item_price *" #> OrderValidator.formatPrice (p.price) &
+      ".cart_total_price *" #> OrderValidator.formatPrice (p.price * p.qty.getOrElse(0)) &
       "#cart_item_desc *" #> p.description &
       (if (showConfirmation)
         "#cart_quantity *" #> p.qty.getOrElse(1)
@@ -64,9 +58,9 @@ trait CartViewer {
 
   private def showOrderSummary (order: List[Product]) = {
     val (total, subtotal, tax) = OrderValidator.orderTotals(order)
-    ".order_subtotal *" #> ("Subtotal: " + formatPrice(subtotal)) &
-      ".order_tax *" #> ("Tax: " + formatPrice(tax)) &
-      ".order_total *" #> ("Total: " + formatPrice(total))
+    ".order_subtotal *" #> ("Subtotal: " + OrderValidator.formatPrice(subtotal)) &
+      ".order_tax *" #> ("Tax: " + OrderValidator.formatPrice(tax)) &
+      ".order_total *" #> ("Total: " + OrderValidator.formatPrice(total))
   }
 
   protected def renderCart = ApiClient.myCart.get match {
