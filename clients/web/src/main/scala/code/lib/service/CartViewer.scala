@@ -9,7 +9,12 @@ import net.liftweb.util.CssSel
 import net.liftweb.util.Helpers.strToCssBindPromoter
 import com.kitchenfantasy.model.{Product, Order, OrderValidator}
 
+import java.util.Date
+import java.text.SimpleDateFormat
+
 trait CartViewer extends RenderMessages {
+  private def defaultDateFormat = "MM-dd-yy HH:mm"
+
   protected object checkoutConfirmation extends RequestVar[(Boolean)](false)
   protected object viewOrderProductDetails extends RequestVar[(Option[Order])](None)
 
@@ -25,6 +30,12 @@ trait CartViewer extends RenderMessages {
   def showConfirmation = checkoutConfirmation.get
 
   private def noProductsInCart = <b>There are no items in your cart.</b>
+
+  private def formatToDate (id: Long) = {
+    val newDate = new Date(id)
+    val df = new SimpleDateFormat(defaultDateFormat)
+    df.format(newDate)
+  }
 
   private def showNoItemsInCart = "#cart_row *" #> noProductsInCart &
     ".cart_menu [style+]" #> "display:none" &
@@ -60,14 +71,14 @@ trait CartViewer extends RenderMessages {
         SetHtml("cart_item", shoppingCartTemplate.is.applyAgain)
       })
 
-  private def showOrderSummary (order: List[Product]) = {
+  private def showOrderSummary (order: List[Product]): CssSel = {
     val (total, subtotal, tax) = OrderValidator.orderTotals(order)
     ".order_subtotal *" #> ("Subtotal: " + OrderValidator.formatPrice(subtotal)) &
       ".order_tax *" #> ("Tax: " + OrderValidator.formatPrice(tax)) &
       ".order_total *" #> ("Total: " + OrderValidator.formatPrice(total)) &
     (if (UserClient.isLoggedIn)
       "#checkout [style!]" #> "display:none" &
-      "#checkout [onclick]" #> SHtml.onEvent((s)=> {
+      "#checkout [onclick]" #> SHtml.ajaxInvoke(()=> {
           if (showConfirmation) {
             S.notice("Placing order...")
             ProductClient.orderProducts(order) match {
@@ -90,17 +101,27 @@ trait CartViewer extends RenderMessages {
         }) else "#checkout [style+]" #> "display:none")
   }
 
-  private def renderProductsList (productList: List[Product]) = {
+  protected def showOrderItem (o: Order): CssSel =
+    "#orderDate *" #> formatToDate(o.timestamp.getOrElse(0L)) &
+      "#orderId *" #> o.id.getOrElse("---") &
+      "#orderCC *" #> ("xxxx" + (o.credit_card.cc_number takeRight 4)) &
+      "#orderTotal *" #> OrderValidator.formatPrice(o.total.getOrElse(0L)) &
+      "#viewOrderDetails [onclick]" #> SHtml.ajaxInvoke(() =>
+        S.redirectTo("/orders", () => viewOrderProductDetails(Some(o))))
+
+  private def renderProductsList (productList: List[Product], showOrderHeader: Boolean = false): CssSel = {
     if (productList.size > 0) {
       val order = productList.sortBy(i => (i.name, i.id))
       "#cart_row *" #> order.map { p => showCartItem(p)} &
         ".cart_menu [style!]" #> "display:none" &
         "#order_summary [style!]" #> "display:none" &
-        showOrderSummary(order)
+        showOrderSummary(order) &
+        (if (showOrderHeader) showOrderItem(viewOrderProductDetails.get.get)
+          else "orderItem [style+]" #> "display:none")
     }
     else showNoItemsInCart
   }
 
-  protected def renderOrderDetails = renderProductsList(viewOrderProductDetails.get.get.order)
-  protected def renderCart = renderProductsList(ProductClient.shoppingCartItems)
+  protected def renderOrderDetails: CssSel = renderProductsList(viewOrderProductDetails.get.get.order, true)
+  protected def renderCart: CssSel = renderProductsList(ProductClient.shoppingCartItems)
 }

@@ -2,6 +2,33 @@
     <div class="col-sm-12">
         <h2 class="title text-center">Order Details</h2>
     </div>
+    <div class="col-sm-12" align="center">
+        <table class="table table-condensed">
+            <thead>
+            <tr class="orderMenu">
+                <td>Date</td>
+                <td align="center">Order ID</td>
+                <td>Credit Card #</td>
+            </tr>
+            </thead>
+            <tbody>
+            <div id="orderItem">
+                <tr id="orderRow">
+                    <td>
+                        <p id="orderDate"></p>
+                    </td>
+                    <td align="center">
+                        <p id="orderId"></p>
+                    </td>
+                    <td>
+                        <p id="orderCC"></p>
+                    </td>
+                </tr>
+            </div>
+            </tbody>
+        </table>
+        <br/>
+    </div>
     <div class="table-responsive cart_info col-sm-12" align="center">
         <table class="table table-condensed">
             <thead>
@@ -41,7 +68,7 @@
             <p class="order_subtotal">Subtotal: $0.00</p>
             <p class="order_tax">Tax: $0.00</p>
             <h4 class="order_total">Total: $0.00</h4>
-            <a id="checkout" class="btn btn-default check_out" href="">Back</a>
+            <a id="checkout" class="btn btn-default check_out">Back</a>
         </div>
         <br/><br/>
     </div>
