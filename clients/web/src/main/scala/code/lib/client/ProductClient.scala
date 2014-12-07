@@ -1,29 +1,49 @@
-package code
-package lib
+package code.lib.client
 
-import code.lib.ApiClient.currentUser
-import code.lib.ApiClient.myCart
-import dispatch._, Defaults._
-import com.kitchenfantasy.model._
-import net.liftweb.json.JsonParser
-import net.liftweb.json.DefaultFormats
+import code.lib.client.ApiClient.{currentUser, myCart}
+import dispatch.Defaults._
+import dispatch._
 import net.liftweb.common.{Empty, Full}
-
+import net.liftweb.json.{DefaultFormats, JsonParser}
 import scala.collection.mutable.MutableList
+import com.kitchenfantasy.model._
 
 object ProductClient {
   private implicit val formats = DefaultFormats
 
-  def updateCartText = (if (myCart.isDefined) {
-    myCart.get match {
-      case Full(cart) => (if (cart.size > 0) {
-        val cartSize = cart.map { product => product.qty.getOrElse(0)}.sum
-        "(" + cartSize + ")"
-      } else "")
-      case _ => ""
-    }
+  def shoppingCartItems(): List[Product] =
+    if (myCart.isDefined)
+      myCart.get match {
+        case Full(productList) => productList
+        case _ => List.empty
+      }
+    else List.empty
+
+  def updateCartText = {
+    val cartItems = shoppingCartItems
+    if (cartItems.size > 0) {
+      val cartSize = cartItems.map { product => product.qty.getOrElse(0)}.sum
+      "(" + cartSize + ")"
+    } else ""
   }
-  else "")
+
+  def viewOrders (): Option[ApiOrders] = {
+    if (currentUser.isDefined)
+      currentUser.get match {
+        case Full(u) => {
+          val credential = UserCredential(u.email, u.password)
+          val result = Http(ApiClient.products.viewOrders(credential) OK as.String).either
+          result() match {
+            case Right(content) => {
+              val orders = JsonParser.parse(content).extract[ApiOrders]
+              Some(orders)
+            }
+            case _ => None
+          }
+        }
+      }
+    else None
+  }
 
   def orderProducts(products: List[Product]): Option[ApiOrder] = {
     if (currentUser.isDefined)
@@ -47,7 +67,7 @@ object ProductClient {
     else None
   }
 
-  def viewProducts: Option[ApiProduct] = {
+  def viewProducts(): Option[ApiProduct] = {
     val result = Http(ApiClient.products.view OK as.String).either
     result() match {
       case Right(content) => {

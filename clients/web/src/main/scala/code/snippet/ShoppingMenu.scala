@@ -1,7 +1,7 @@
 package code
 package snippet
 
-import code.lib.{ApiClient, UserClient, ProductClient}
+import code.lib.client.{UserClient, ProductClient}
 import net.liftweb.http.provider.HTTPCookie
 import net.liftweb.http.{S, SHtml}
 import net.liftweb.http.js.{JsCmd, JsCmds}
@@ -22,10 +22,12 @@ class ShoppingMenu {
 
   def showMenu (in: NodeSeq): NodeSeq = {
     val cssSel = (
-      if (ApiClient.isLoggedIn)
+      if (UserClient.isLoggedIn)
+        "#orders [style!]" #> "display: none" &
         "#login_logout [onclick]" #> SHtml.onEvent((s) => processLogOut) &
           "#login_logout *" #> showLoginText("Logout")
       else
+        "#orders [style+]" #> "display: none" &
         "#login_logout [onclick]" #> JsCmds.RedirectTo("/login") &
           "#login_logout *" #> showLoginText("Login")) &
       "#cart_count *" #> ProductClient.updateCartText

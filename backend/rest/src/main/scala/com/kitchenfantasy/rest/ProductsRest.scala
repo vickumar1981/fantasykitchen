@@ -16,6 +16,21 @@ class ProductsRest extends Rest with KitchenRestAuth {
     }
 
     case POST("products" :: "orders" :: Nil, raw) =>
+      SerializationProvider.read[UserCredential](raw) match {
+        case (string, Some(credential)) =>
+          authorizeCredentials(credential, (u) => {
+            val orders = Orders.findByEmail(u.email)
+            JSONResponse(orders.sortBy(o => {
+              if (o.timestamp.isDefined)
+                - o.timestamp.get
+              else
+                - System.currentTimeMillis
+            }), orders.size)
+          })
+        case (string, None) => Error(400, "POST data doesn't conform to type user credential.")
+      }
+
+    case POST("products" :: "order" :: Nil, raw) =>
       SerializationProvider.read[Transaction](raw) match {
         case (string, Some(transaction)) =>
           authorizeCredentials(transaction.credential, (u) => {

@@ -1,7 +1,8 @@
 package code
 package snippet
 
-import code.lib.{UserClient, CartViewer}
+import code.lib.client.UserClient
+import code.lib.service.{RenderMessages, CartViewer}
 import net.liftweb.common.{Empty, Full}
 import net.liftweb.http.js.JsCmds._
 import net.liftweb.http.js.{JsCmd, JsCmds}
@@ -15,9 +16,6 @@ import java.util.Calendar
 
 class Checkout extends CartViewer {
   private lazy val pageUrl = "/checkout"
-  private def renderNotice(msg: String) = <div class='register-req'><p>{msg}</p></div>
-  private def renderError(msg: String) = <label>{msg}</label>
-
   lazy val currentYear = Calendar.getInstance().get(Calendar.YEAR)
 
   private lazy val cc_types: List[String] = List("-- CC Type --", "Visa", "Amex", "Mastercard", "Discover")

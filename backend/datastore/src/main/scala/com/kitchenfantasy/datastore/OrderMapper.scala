@@ -17,6 +17,8 @@ object Orders extends RiakMapper[Order]("kitchen-orders") {
     o
   }
 
+  def findByEmail (email: String): List[Order] = findByIndex("email", email)
+
   def createOrder (o: Order, transaction_id: String): Order = {
     val timeStamp = System.currentTimeMillis
     val newId = timeStamp + "_" + generateId.substring(0, 10)

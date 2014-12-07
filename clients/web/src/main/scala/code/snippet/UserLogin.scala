@@ -1,7 +1,8 @@
 package code
 package snippet
 
-import code.lib.{ApiClient, UserClient}
+import code.lib.client.{UserClient, ApiClient}
+import code.lib.service.RenderMessages
 import net.liftweb.common.Full
 import net.liftweb.http.provider.HTTPCookie
 import net.liftweb.http.{S, RequestVar, SHtml}
@@ -12,7 +13,7 @@ import net.liftweb.util.Helpers.strToCssBindPromoter
 import com.kitchenfantasy.model._
 import org.mindrot.jbcrypt.BCrypt
 
-class UserLogin {
+class UserLogin extends RenderMessages {
   private lazy val pageUrl = "/login"
   private var login_email = ""
   private var login_pw = ""
@@ -24,8 +25,6 @@ class UserLogin {
   private var pw = registrationInfo.get._2
   private var confirm_pw = registrationInfo.get._3
   private var invite_code = ""
-
-  private def renderNotice(msg: String) = <div class='register-req'><p>{msg}</p></div>
 
   def register = {
 

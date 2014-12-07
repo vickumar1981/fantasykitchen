@@ -1,5 +1,4 @@
-package code
-package lib
+package code.lib.service
 
 import javax.crypto.{Cipher, SecretKey, SecretKeyFactory}
 import javax.crypto.spec.{PBEKeySpec, PBEParameterSpec}

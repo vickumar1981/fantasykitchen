@@ -1,14 +1,24 @@
-package code
-package lib
+package code.lib.client
 
-import code.lib.ApiClient.currentUser
-import dispatch._, Defaults._
+import code.lib.client.ApiClient.currentUser
+import code.lib.service.UserCookieManager
+import dispatch.Defaults._
+import dispatch._
+import net.liftweb.common.{Empty, Full}
+import net.liftweb.json.{DefaultFormats, JsonParser}
 import com.kitchenfantasy.model._
-import net.liftweb.json.{JsonParser, DefaultFormats}
-import net.liftweb.common.{Full, Empty}
 
 object UserClient extends UserCookieManager {
   private implicit val formats = DefaultFormats
+
+  def isLoggedIn (): Boolean = {
+    if (currentUser.isDefined)
+      currentUser.get match {
+        case Full(u) => true
+        case _ => false
+      }
+    else false
+  }
 
   def getUserAddress (): Address = {
     val emptyAddress = Address("", "", "", "", "")

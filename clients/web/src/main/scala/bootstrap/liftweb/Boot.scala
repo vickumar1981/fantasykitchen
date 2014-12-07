@@ -1,6 +1,6 @@
 package bootstrap.liftweb
 
-import code.lib.{UserClient, ApiClient}
+import code.lib.client.UserClient
 import net.liftweb._
 import net.liftweb.http.provider.HTTPCookie
 import util._
@@ -43,7 +43,7 @@ class Boot {
     }
 
     LiftRules.earlyInStateful.append {
-      case Full(r) if (!ApiClient.isLoggedIn()) => autoLoginUser(r.cookies)
+      case Full(r) if (!UserClient.isLoggedIn()) => autoLoginUser(r.cookies)
       case _ =>
     }
 
@@ -60,8 +60,8 @@ class Boot {
       Menu("Home") / "index",
       Menu("Login") / "login",
       Menu("Cart") / "cart",
-      Menu("Account") /"account" >> If(() => ApiClient.isLoggedIn, ""),
-      Menu("Checkout") /"checkout" >> If(() => ApiClient.isLoggedIn, ""))
+      Menu("Orders") /"orders" >> If(() => UserClient.isLoggedIn, ""),
+      Menu("Checkout") /"checkout" >> If(() => UserClient.isLoggedIn, ""))
 
     def sitemapMutators = User.sitemapMutator
 
@@ -86,7 +86,7 @@ class Boot {
     LiftRules.early.append(_.setCharacterEncoding("UTF-8"))
 
     // What is the function to test if a user is logged in?
-    LiftRules.loggedInTest = Full(() => ApiClient.isLoggedIn)
+    LiftRules.loggedInTest = Full(() => UserClient.isLoggedIn)
 
     // Use HTML5 for rendering
     LiftRules.htmlProperties.default.set((r: Req) =>

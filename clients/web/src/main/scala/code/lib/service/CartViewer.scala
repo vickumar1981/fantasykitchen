@@ -1,24 +1,27 @@
-package code
-package lib
+package code.lib.service
 
-import net.liftweb.common.Full
+import code.lib.client.{UserClient, ProductClient}
 import net.liftweb.http.js.JsCmd
-import net.liftweb.http.{S, RequestVar, SHtml}
+import net.liftweb.http.js.JsCmds
 import net.liftweb.http.js.JsCmds._
+import net.liftweb.http.{RequestVar, S, SHtml}
 import net.liftweb.util.CssSel
-
 import net.liftweb.util.Helpers.strToCssBindPromoter
-import com.kitchenfantasy.model.{Product, OrderValidator}
+import com.kitchenfantasy.model.{Product, Order, OrderValidator}
 
-
-trait CartViewer {
-
+trait CartViewer extends RenderMessages {
   protected object checkoutConfirmation extends RequestVar[(Boolean)](false)
+  protected object viewOrderProductDetails extends RequestVar[(Option[Order])](None)
 
   private def renderShoppingCart = SHtml.memoize { renderCart }
   private object shoppingCartTemplate extends RequestVar(renderShoppingCart)
 
   def showCheckout = !checkoutConfirmation.get
+  def showOrderDetails = viewOrderProductDetails.get match {
+    case Some(o) => true
+    case _ => false
+  }
+
   def showConfirmation = checkoutConfirmation.get
 
   private def noProductsInCart = <b>There are no items in your cart.</b>
@@ -43,6 +46,7 @@ trait CartViewer {
         "#cart_quantity *" #> p.qty.getOrElse(1)
        else
         ".cart_quantity_input [value]" #> p.qty.getOrElse(1) ) &
+      "name=cart_section [id+]" #> ( "product" + p.id ) &
       ".cart_quantity_delete [onclick]" #> SHtml.ajaxInvoke(() => {
         ProductClient.deleteProductFromCart(p)
         SetHtml("cart_item", shoppingCartTemplate.is.applyAgain)
@@ -61,36 +65,42 @@ trait CartViewer {
     ".order_subtotal *" #> ("Subtotal: " + OrderValidator.formatPrice(subtotal)) &
       ".order_tax *" #> ("Tax: " + OrderValidator.formatPrice(tax)) &
       ".order_total *" #> ("Total: " + OrderValidator.formatPrice(total)) &
+    (if (UserClient.isLoggedIn)
+      "#checkout [style!]" #> "display:none" &
       "#checkout [onclick]" #> SHtml.onEvent((s)=> {
           if (showConfirmation) {
             S.notice("Placing order...")
             ProductClient.orderProducts(order) match {
               case Some(order) => {
-                S.redirectTo ("/", ()=> {
-                  S.notice ("Order successful.")
+                S.redirectTo ("/orders", ()=> {
+                  S.notice (renderNotice("Order successful."))
                 })}
               case _ => {
                 S.redirectTo ("/checkout", () => {
-                  S.notice("The credit card information is invalid.")
+                  S.notice(renderNotice("The credit card information is invalid."))
                 })}
             }
+          }
+          else if (showOrderDetails) {
+            S.redirectTo("/orders", () => viewOrderProductDetails(None))
           }
           else {
             S.redirectTo("/checkout")
           }
-        })
+        }) else "#checkout [style+]" #> "display:none")
   }
 
-  protected def renderCart = ApiClient.myCart.get match {
-    case Full(productList) =>
-      if (productList.size > 0) {
-        val order = productList.sortBy(i => (i.name, i.id))
-        "#cart_row *" #> order.map { p => showCartItem(p)} &
-          ".cart_menu [style!]" #> "display:none" &
-          "#order_summary [style!]" #> "display:none" &
-          showOrderSummary (order)
-      }
-      else showNoItemsInCart
-    case _ => showNoItemsInCart
+  private def renderProductsList (productList: List[Product]) = {
+    if (productList.size > 0) {
+      val order = productList.sortBy(i => (i.name, i.id))
+      "#cart_row *" #> order.map { p => showCartItem(p)} &
+        ".cart_menu [style!]" #> "display:none" &
+        "#order_summary [style!]" #> "display:none" &
+        showOrderSummary(order)
+    }
+    else showNoItemsInCart
   }
+
+  protected def renderOrderDetails = renderProductsList(viewOrderProductDetails.get.get.order)
+  protected def renderCart = renderProductsList(ProductClient.shoppingCartItems)
 }
