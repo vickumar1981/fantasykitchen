@@ -48,11 +48,16 @@ class ViewProducts extends CartViewer {
       val cssSel = ProductClient.viewOrders match {
         case Some(orderList) => {
           if (orderList.rows == 0)
-            "#orderItem" #> noOrdersErrMsg
+            "#orderItem" #> noOrdersErrMsg &
+              ".orderMenu [style+]" #> "display:none" &
+              "#viewOrderDetails [style+]" #> "display:none"
           else
-            "#orderRow *" #> orderList.data.map { o => showOrderItem(o)}
+            "#orderRow *" #> orderList.data.map { o => showOrderItem(o)} &
+              ".orderMenu [style!]" #> "display:none"
         }
-        case _ => "#orderItem" #> noOrdersErrMsg
+        case _ => "#orderItem" #> noOrdersErrMsg &
+                    ".orderMenu [style!]" #> "display:none" &
+                    "#viewOrderDetails [style+]" #> "display:none"
       }
       cssSel(in)
     }

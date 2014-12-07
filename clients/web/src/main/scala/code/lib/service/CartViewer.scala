@@ -106,6 +106,7 @@ trait CartViewer extends RenderMessages {
       "#orderId *" #> o.id.getOrElse("---") &
       "#orderCC *" #> ("xxxx" + (o.credit_card.cc_number takeRight 4)) &
       "#orderTotal *" #> OrderValidator.formatPrice(o.total.getOrElse(0L)) &
+      "#viewOrderDetails [style!]" #> "display:none" &
       "#viewOrderDetails [onclick]" #> SHtml.ajaxInvoke(() =>
         S.redirectTo("/orders", () => viewOrderProductDetails(Some(o))))
 

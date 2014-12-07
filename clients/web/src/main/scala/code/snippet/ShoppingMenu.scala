@@ -18,7 +18,7 @@ class ShoppingMenu {
     S.redirectTo("/")
   }
 
-  private def showLoginText (s: String) = <a><i class='fa fa-lock'></i> {s}</a>
+  private def showLoginText (s: String) = <span><i class='fa fa-lock'></i> {s}</span>
 
   def showMenu (in: NodeSeq): NodeSeq = {
     val cssSel = (
@@ -28,7 +28,7 @@ class ShoppingMenu {
           "#login_logout *" #> showLoginText("Logout")
       else
         "#orders [style+]" #> "display: none" &
-        "#login_logout [onclick]" #> JsCmds.RedirectTo("/login") &
+        "#login_logout [onclick]" #> SHtml.onEvent((s) => S.redirectTo("/login")) &
           "#login_logout *" #> showLoginText("Login")) &
       "#cart_count *" #> ProductClient.updateCartText
     cssSel(in)
