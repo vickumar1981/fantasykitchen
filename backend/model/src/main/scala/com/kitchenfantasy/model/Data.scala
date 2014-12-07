@@ -41,4 +41,5 @@ case class Transaction (credential: UserCredential, order: List[Product])
 case class Order (email: String, credit_card: CCInfo, address: Address,
                   order: List[Product], total: Option[Long] = None,
                   subtotal: Option[Long] = None, tax: Option[Long] = None,
-                  promo: Option[Promo] = None, timestamp: Option[Long] = None, id: Option[String] = None)
+                  promo: Option[Promo] = None, timestamp: Option[Long] = None,
+                  id: Option[String] = None, transaction_id: Option[String] = None)

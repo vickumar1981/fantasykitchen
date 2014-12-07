@@ -3,7 +3,7 @@ package com.kitchenfantasy.rest
 import akka.actor.Props
 import com.kitchenfantasy.KitchenRestAuth
 import com.kitchenfantasy.datastore.{Products, Orders}
-import com.kitchenfantasy.jobs.{OrderConfirmationEmail, RegistrationEmail, SendEmailJob, JobSettings}
+import com.kitchenfantasy.jobs._
 import com.kitchenfantasy.model._
 import com.kitchenfantasy.server.SerializationProvider
 import com.kitchenfantasy.server.api._
@@ -32,11 +32,17 @@ class ProductsRest extends Rest with KitchenRestAuth {
                   val (total, subtotal, tax) = OrderValidator.orderTotals(products)
                   val o = Order(u.email, u.credit_cards.get(0), u.address.get, products,
                     Some(total), Some(subtotal), Some(tax))
-                  val newOrder = Orders.createOrder(o)
-                  val emailSender = JobSettings.processor.actorOf(Props[SendEmailJob],
-                    "confirm_order" + "_" + newOrder.id.getOrElse(System.currentTimeMillis.toString))
-                  emailSender ! OrderConfirmationEmail(newOrder)
-                  JSONResponse(newOrder, 1)
+
+                  CCPaymentJob.processPayment(o) match {
+                    case Some(transaction_id) => {
+                      val newOrder = Orders.createOrder(o, transaction_id)
+                      val emailSender = JobSettings.processor.actorOf(Props[SendEmailJob],
+                        "confirm_order" + "_" + newOrder.id.getOrElse(System.currentTimeMillis.toString))
+                      emailSender ! OrderConfirmationEmail(newOrder)
+                      JSONResponse(newOrder, 1)
+                    }
+                    case _ => Error(400, "Credit card information is invalid.")
+                  }
                 }
                 else Error(400, "There are no products listed in the order.")
               }

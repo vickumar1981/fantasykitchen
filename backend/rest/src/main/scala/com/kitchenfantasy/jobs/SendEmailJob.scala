@@ -15,42 +15,6 @@ import com.kitchenfantasy.model.{InviteCode, Order, OrderValidator}
 case class RegistrationEmail (invite: InviteCode)
 case class OrderConfirmationEmail (order: Order)
 
-object EmailTemplates {
-
-  object confirm_order {
-    lazy val subject = "Thanks! Your Order has been confirmed."
-
-    def body (order_id: String, cc_number: String, total: String) =
-    { "Thank you!  Your order has been confirmed.\n\n" +
-      "Please review the information about your order below: \n\n\n" +
-      "\tOrder Id: " + order_id + "\n" +
-      "\tCC #: " + cc_number + "\n" +
-      "\tTotal: " + total + "\n\n\n\n" +
-      "***** DO NOT RESPOND TO THIS MESSAGE *****\n\n" }
-  }
-
-  object registration {
-    lazy val subject = "Welcome to Fantasy Kitchen"
-
-    def body (code: String) = { "Welcome to Fantasy Kitchen.\n\n" +
-      "Thank you for registering!\n\n" +
-      "Please use the following verification code\n" +
-      "to complete your registration\n\n\n" +
-      "Verification Code: " + code + "\n\n\n\n" +
-      "***** DO NOT RESPOND TO THIS MESSAGE *****\n\n" }
-
-    /*
-    def body {code: String} = {
-      <html lang="en">
-        <head></head>
-        <body>
-        </body>
-      </html>
-    }
-    */
-  }
-}
-
 class SendEmailJob extends Actor {
 
   private def emailProperties = {
@@ -76,7 +40,7 @@ class SendEmailJob extends Actor {
     val message = new MimeMessage(s)
     message.setFrom(new InternetAddress(JobSettings.email.from))
     message.setRecipients(Message.RecipientType.TO, to.toLowerCase)
-    message.setSubject(EmailTemplates.registration.subject)
+    message.setSubject(subject)
     message.setText(text)
     message
   }

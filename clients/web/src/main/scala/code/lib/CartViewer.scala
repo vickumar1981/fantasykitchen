@@ -4,7 +4,7 @@ package lib
 import net.liftweb.common.Full
 import net.liftweb.http.js.JsCmd
 import net.liftweb.http.{S, RequestVar, SHtml}
-import net.liftweb.http.js.JsCmds.SetHtml
+import net.liftweb.http.js.JsCmds._
 import net.liftweb.util.CssSel
 
 import net.liftweb.util.Helpers.strToCssBindPromoter
@@ -60,7 +60,25 @@ trait CartViewer {
     val (total, subtotal, tax) = OrderValidator.orderTotals(order)
     ".order_subtotal *" #> ("Subtotal: " + OrderValidator.formatPrice(subtotal)) &
       ".order_tax *" #> ("Tax: " + OrderValidator.formatPrice(tax)) &
-      ".order_total *" #> ("Total: " + OrderValidator.formatPrice(total))
+      ".order_total *" #> ("Total: " + OrderValidator.formatPrice(total)) &
+      "#checkout [onclick]" #> SHtml.onEvent((s)=> {
+          if (showConfirmation) {
+            S.notice("Placing order...")
+            ProductClient.orderProducts(order) match {
+              case Some(order) => {
+                S.redirectTo ("/", ()=> {
+                  S.notice ("Order successful.")
+                })}
+              case _ => {
+                S.redirectTo ("/checkout", () => {
+                  S.notice("The credit card information is invalid.")
+                })}
+            }
+          }
+          else {
+            S.redirectTo("/checkout")
+          }
+        })
   }
 
   protected def renderCart = ApiClient.myCart.get match {
