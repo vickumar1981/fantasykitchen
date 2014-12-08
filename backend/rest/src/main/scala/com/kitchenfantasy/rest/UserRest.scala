@@ -30,7 +30,8 @@ class UserRest extends Rest with KitchenRestAuth {
             register_user.invite_code match {
               case None => {
                 JobSettings.logger.info("Registering user '" + email + "'")
-                val invite = InviteCodes.createInviteCode(register_user.copy(email=email))
+                val invite = InviteCodes.createInviteCode(register_user.copy(email=email,
+                  password=LoginValidator.encryptPW(register_user.password)))
                 val emailSender = JobSettings.processor.actorOf(Props[SendEmailJob],
                   "register_user_" + "_" + invite.code)
                 emailSender ! RegistrationEmail(invite)
@@ -46,7 +47,7 @@ class UserRest extends Rest with KitchenRestAuth {
                       InviteCodes.delete(email)
                       JSONResponse(newUser, 1)
                     }
-                    else Error (404, "The invite code is invalid.")
+                    else JSONResponse(register_user.copy(confirmed = false), 1)
                   }
                 }
             }

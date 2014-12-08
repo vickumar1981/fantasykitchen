@@ -4,9 +4,10 @@ package snippet
 import code.lib.client.{UserClient, ApiClient}
 import code.lib.service.RenderMessages
 import net.liftweb.common.Full
+import net.liftweb.http.js.JE.{JsRaw, ValById}
 import net.liftweb.http.provider.HTTPCookie
 import net.liftweb.http.{S, RequestVar, SHtml}
-import net.liftweb.http.js.JsCmd
+import net.liftweb.http.js.{JsCommands, JE, JsCmds, JsCmd}
 import net.liftweb.http.js.JsCmds.Noop
 
 import net.liftweb.util.Helpers.strToCssBindPromoter
@@ -15,8 +16,12 @@ import org.mindrot.jbcrypt.BCrypt
 
 class UserLogin extends RenderMessages {
   private lazy val pageUrl = "/login"
-  private var login_email = ""
-  private var login_pw = ""
+
+  private object forgotPWInfo extends RequestVar[(String, String, Boolean)]("","",false)
+  private var login_email = forgotPWInfo.get._1
+  private var login_pw = forgotPWInfo.get._2
+  private var login_confirm_pw = ""
+  private var login_invite_code = ""
   private var remember_me = false
 
   private object registrationInfo extends RequestVar[(String, String, String, Boolean)]("", "", "", false)
@@ -31,7 +36,7 @@ class UserLogin extends RenderMessages {
     def processRegister: JsCmd = {
       val register_user: User = (if (registrationInfo.get._4)
         User (email.toLowerCase, pw, "", "", false, false, None, None, Some(invite_code))
-        else User (email.toLowerCase, BCrypt.hashpw(pw, BCrypt.gensalt()), "", ""))
+        else User (email.toLowerCase, pw, "", ""))
       val errorList= (if (registrationInfo.get._4) List.empty
                       else LoginValidator.validateRegistration(register_user, pw, confirm_pw))
 
@@ -49,6 +54,7 @@ class UserLogin extends RenderMessages {
             u.data.invite_code match {
               case Some(invite_code) => {
                 if (u.data.confirmed) {
+                  ApiClient.currentUser.set(Full(u.data))
                   S.notice(renderNotice("Registering user..."))
                   S.redirectTo("/")
                 }
@@ -56,11 +62,10 @@ class UserLogin extends RenderMessages {
                   S.notice(renderNotice("The invite code was invalid.  Please check your email."))
               }
               case None => {
-                ApiClient.currentUser.set(Full(u.data))
                 S.redirectTo(pageUrl, () => {
                   S.notice(renderNotice("An invite code was sent to your email.  " +
                     "Please check your email address"))
-                  registrationInfo((email, pw, confirm_pw, true))
+                  registrationInfo((email, u.data.password, u.data.password, true))
                 })
               }
             }
@@ -81,9 +86,9 @@ class UserLogin extends RenderMessages {
     }
 
     (if (registrationInfo.get._4)
-      "#email" #> SHtml.text(email, email = _,  "readonly" -> "readonly") &
-        "#pw" #> SHtml.password(pw, pw = _,  "readonly" -> "readonly") &
-        "#confirm_pw" #> SHtml.password(confirm_pw, confirm_pw = _,  "readonly" -> "readonly") &
+      "#email" #> SHtml.text(email, email = _, "readonly" -> "readonly") &
+        "#pw" #> SHtml.password(pw, pw = _, "readonly" -> "readonly") &
+        "#confirm_pw" #> SHtml.password(confirm_pw, confirm_pw = _, "readonly" -> "readonly") &
         "#process_registration" #> (SHtml.hidden(() => processRegister)) &
         "#register_user *" #> "Verify" &
         "#cancel_btn [style!]" #> "display:none" &
@@ -102,24 +107,61 @@ class UserLogin extends RenderMessages {
   def logIn = {
     def processLogIn: JsCmd = {
       val login_user: UserCredential = UserCredential (login_email.toLowerCase, login_pw)
-      UserClient.loginUser (login_user) match {
-        case Some (u) => {
-          if (remember_me) {
-            val cookie = UserClient.storeUserCookie(login_email, login_pw)
-            S.addCookie(HTTPCookie(UserClient.userCookieName, cookie).setMaxAge(2592000).setPath("/"))
+      if (login_pw.length > 0 && login_email.length > 0)
+        UserClient.loginUser (login_user) match {
+          case Some (u) => {
+            if (remember_me) {
+              val cookie = UserClient.storeUserCookie(login_email, login_pw)
+              S.addCookie(HTTPCookie(UserClient.userCookieName, cookie).setMaxAge(2592000).setPath("/"))
+            }
+            else S.addCookie(HTTPCookie(UserClient.userCookieName, "").setMaxAge(0).setPath("/"))
+            S.notice(renderNotice("Logging in..."))
+            S.redirectTo("/")
           }
-          else S.addCookie(HTTPCookie(UserClient.userCookieName, "").setMaxAge(0).setPath("/"))
-          S.notice(renderNotice("Logging in..."))
-          S.redirectTo("/")
+          case _ => S.notice(renderNotice("There email and password are invalid.  Please try again."))
         }
-        case _ => S.notice(renderNotice("There email and password are invalid.  Please try again."))
-      }
+      else S.notice (renderNotice("Please provide an email and password."))
       Noop
     }
 
-    "#login_email" #> SHtml.text(login_email, login_email = _) &
-      "#login_pw" #> SHtml.password(login_pw, login_pw = _) &
-      "#remember_me" #> SHtml.checkbox(remember_me, (resp) => remember_me = resp) &
-      "#process_login" #> (SHtml.hidden(() => processLogIn) )
+    def forgotMyPassword: JsCmd = {
+      val userLogin = JsCmds.Run(ValById("login_pw").toJsCmd).text
+      val userPW = JsCmds.Run(ValById("login_pw").toJsCmd).text
+
+      println("\n\n" + userLogin + "\n\n" + userPW + "\n\n")
+      Noop
+    }
+
+    def cancelForgotPW: JsCmd = {
+      S.redirectTo(pageUrl, () => {
+        S.notice(renderNotice("Clearing form..."))
+        forgotPWInfo(("", "", false))
+      })
+      Noop
+    }
+
+    (if (forgotPWInfo.get._3)
+      "#login_email" #> SHtml.text(login_email, login_email = _, "readonly" -> "readonly") &
+        "#login_pw" #> SHtml.password(login_pw, login_pw = _, "readonly" -> "readonly") &
+        "#remember_me" #> SHtml.checkbox(remember_me, (resp) => remember_me = resp,
+          "readonly" -> "readonly") &
+        "#process_login" #> (SHtml.hidden(() => processLogIn)) &
+        "#login_user *" #> "Update Password" &
+        "#cancel_btn [style!]" #> "display:none" &
+        "#cancel_btn [onclick]" #> SHtml.onEvent((s) => cancelForgotPW) &
+        "#login_confirm_pw" #> SHtml.password(login_confirm_pw, login_confirm_pw = _) &
+        "#login_invite_code" #> SHtml.password(login_invite_code, login_invite_code = _)
+    else
+      "#login_email" #> SHtml.text(login_email, login_email = _) &
+        "#login_pw" #> SHtml.password(login_pw, login_pw = _) &
+        "#remember_me" #> SHtml.checkbox(remember_me, (resp) => remember_me = resp) &
+        "#process_login" #> (SHtml.hidden(() => processLogIn)) &
+        "#login_user *" #> "Login" &
+        "#cancel_btn [style+]" #> "display:none" &
+        "#forgot_password [onclick]" #> SHtml.onEvent((s) => forgotMyPassword) &
+        "#login_confirm_pw" #> SHtml.password(login_confirm_pw, login_confirm_pw = _,
+          "style" -> "display:none") &
+        "#login_invite_code" #> SHtml.password(login_invite_code, login_invite_code = _,
+          "style" -> "display:none"))
   }
 }

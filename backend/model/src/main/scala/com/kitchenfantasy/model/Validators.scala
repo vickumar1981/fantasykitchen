@@ -105,6 +105,8 @@ object LoginValidator {
 
   private def isValidEmail(email: String): Boolean = """(\w+)@([\w\.]+)""".r.unapplySeq(email).isDefined
 
+  def encryptPW (pw: String) = BCrypt.hashpw(pw, BCrypt.gensalt())
+
   def checkIfPWMatch (pw1: String, pw2 :String) = {
     BCrypt.checkpw(pw2, pw1)
   }
@@ -128,7 +130,7 @@ object LoginValidator {
 
     if (confirm_pw.isEmpty)
       errors += "confirm_pw" -> "Password confirmation is required."
-    else if (!u.password.isEmpty && !checkIfPWMatch(u.password, confirm_pw))
+    else if (!u.password.isEmpty && !u.password.equals(confirm_pw))
       errors += "confirm_pw" -> "Passwords don't match"
     else
       errors += "confirm_pw" -> ""

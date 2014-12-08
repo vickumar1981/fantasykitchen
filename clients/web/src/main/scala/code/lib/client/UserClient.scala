@@ -75,7 +75,6 @@ object UserClient extends UserCookieManager with Loggable {
       case Right(content) => {
         logger.info("Registering user '" + u.email + "'")
         val registeredUser = JsonParser.parse(content).extract[ApiUser]
-        ApiClient.currentUser.set(Full(registeredUser.data))
         Some(registeredUser)
       }
       case _  => None

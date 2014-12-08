@@ -5,15 +5,27 @@
             <div id="registration_form">
                 <input id="login_email" type="email" placeholder="Email Address" />
                 <input id="login_pw" type="password" placeholder="Password" />
-                                <span>
-                                    <input id="remember_me" type="checkbox" class="checkbox">
-                                    Keep me signed in
-                                </span>
+                <input id="login_confirm_pw" type="password" placeholder="Confirm Password"/>
+                <input id="login_invite_code" type="password" placeholder="Verification Code"/>
+                <div>
+                    <span>
+                        <input id="remember_me" type="checkbox" class="checkbox">
+                        Keep me signed in
+                    </span>
+                </div>
+                <div>
+                    <a type="submit" href="#" id="forgot_password">Forgot My Password</a>
+                </div>
                 <div style="display:none" id="ajax-loader">
                     <img src="/images/ajax-loader.gif" width="16" height="16"/>
                 </div>
                 <input type="hidden" id="process_login" />
-                <button type="submit" class="btn btn-default">Login</button>
+                <div class="col-sm-2">
+                    <button id="login_user" type="submit" class="btn btn-default">Login</button>
+                </div>
+                <div class="col-sm-2  col-sm-offset-1">
+                    <button id="cancel_btn" class="btn">Cancel</button>
+                </div>
             </div>
         </div>
     </form>
