@@ -28,7 +28,7 @@ class ShoppingMenu {
           "#login_logout *" #> showLoginText("Logout")
       else
         "#orders [style+]" #> "display: none" &
-        "#login_logout [onclick]" #> SHtml.onEvent((s) => S.redirectTo("/login")) &
+        "#login_logout [onclick]" #> JsCmds.RedirectTo("/login") &
           "#login_logout *" #> showLoginText("Login")) &
       "#cart_count *" #> ProductClient.updateCartText
     cssSel(in)
