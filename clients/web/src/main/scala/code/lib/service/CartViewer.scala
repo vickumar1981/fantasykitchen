@@ -53,7 +53,7 @@ trait CartViewer extends RenderMessages {
       "#cart_item_price *" #> OrderValidator.formatPrice (p.price) &
       ".cart_total_price *" #> OrderValidator.formatPrice (p.price * p.qty.getOrElse(0)) &
       "#cart_item_desc *" #> p.description &
-      (if (showConfirmation)
+      (if (showConfirmation || showOrderDetails)
         "#cart_quantity *" #> p.qty.getOrElse(1)
        else
         ".cart_quantity_input [value]" #> p.qty.getOrElse(1) ) &

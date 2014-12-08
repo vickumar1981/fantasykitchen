@@ -55,10 +55,10 @@ class SendEmailJob extends Actor {
                                   "xxxx" + (job.order.credit_card.cc_number takeRight 4),
                                   OrderValidator.formatPrice(job.order.total.getOrElse(0L))))
       Transport.send(message)
-      println("\nSent order confirmation email to '" + job.order.email.toLowerCase + "'\n")
+      JobSettings.logger.info("Sent order confirmation email to '" + job.order.email.toLowerCase + "'")
     } catch {
-      case (e: MessagingException) => println("\nError sending order confirmation email to  '"
-        + job.order.email.toLowerCase + "'\n")
+      case (e: MessagingException) => JobSettings.logger.warn("Error sending order confirmation email to  '"
+        + job.order.email.toLowerCase + "'")
     }
   }
 
@@ -70,11 +70,11 @@ class SendEmailJob extends Actor {
       val message = emailMessage(session, job.invite.user.email, EmailTemplates.registration.subject,
                       EmailTemplates.registration.body(job.invite.code))
       Transport.send(message)
-      println("\nSent registration email to '" + job.invite.user.email.toLowerCase + "'\n")
+      JobSettings.logger.info("Sent registration email to '" + job.invite.user.email.toLowerCase + "'")
 
     } catch {
-      case (e: MessagingException) => println("\nError sending registration email to  '"
-        + job.invite.user.email.toLowerCase + "'\n")
+      case (e: MessagingException) => JobSettings.logger.warn("\nError sending registration email to '"
+        + job.invite.user.email.toLowerCase + "'")
     }
   }
 

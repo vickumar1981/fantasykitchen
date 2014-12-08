@@ -3,12 +3,12 @@ package code.lib.client
 import code.lib.client.ApiClient.{currentUser, myCart}
 import dispatch.Defaults._
 import dispatch._
-import net.liftweb.common.{Empty, Full}
+import net.liftweb.common.{Loggable, Empty, Full}
 import net.liftweb.json.{DefaultFormats, JsonParser}
 import scala.collection.mutable.MutableList
 import com.kitchenfantasy.model._
 
-object ProductClient {
+object ProductClient extends Loggable {
   private implicit val formats = DefaultFormats
 
   def shoppingCartItems(): List[Product] =
@@ -54,7 +54,7 @@ object ProductClient {
           val result = Http(ApiClient.products.order(transaction) OK as.String).either
           result() match {
             case Right(content) => {
-              println ("\nOrdering products for user " + u.email + "\n")
+              logger.info("Ordering products for user '" + u.email + "'")
               val updatedOrder = JsonParser.parse(content).extract[ApiOrder]
               myCart.set(Empty)
               Some(updatedOrder)

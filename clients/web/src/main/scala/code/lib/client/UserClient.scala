@@ -4,11 +4,11 @@ import code.lib.client.ApiClient.currentUser
 import code.lib.service.UserCookieManager
 import dispatch.Defaults._
 import dispatch._
-import net.liftweb.common.{Empty, Full}
+import net.liftweb.common.{Loggable, Empty, Full}
 import net.liftweb.json.{DefaultFormats, JsonParser}
 import com.kitchenfantasy.model._
 
-object UserClient extends UserCookieManager {
+object UserClient extends UserCookieManager with Loggable {
   private implicit val formats = DefaultFormats
 
   def isLoggedIn (): Boolean = {
@@ -56,7 +56,7 @@ object UserClient extends UserCookieManager {
           val result = Http(ApiClient.user.updateInfo(update) OK as.String).either
           result() match {
             case Right(content) => {
-              println ("\nUpdating user info " + u.email + "\n")
+              logger.info("Updating user info '" + u.email + "'")
               val updatedUser = JsonParser.parse(content).extract[ApiUser]
               ApiClient.currentUser.set(Full(updatedUser.data))
               Some(updatedUser)
@@ -73,7 +73,7 @@ object UserClient extends UserCookieManager {
     val result = Http(ApiClient.user.register(u) OK as.String).either
     result() match {
       case Right(content) => {
-        println ("\nRegistering user " + u.email + "\n")
+        logger.info("Registering user '" + u.email + "'")
         val registeredUser = JsonParser.parse(content).extract[ApiUser]
         ApiClient.currentUser.set(Full(registeredUser.data))
         Some(registeredUser)
@@ -86,7 +86,7 @@ object UserClient extends UserCookieManager {
     val result = Http(ApiClient.user.login(u) OK as.String).either
     result() match {
       case Right(content) => {
-        println("\nLogging in " + u.email + "\n")
+        logger.info("Logging in '" + u.email + "'")
         val loggedInUser = JsonParser.parse(content).extract[ApiUser]
         ApiClient.currentUser.set(Full(loggedInUser.data))
         Some(loggedInUser)

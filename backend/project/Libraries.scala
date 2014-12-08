@@ -6,6 +6,7 @@ object Libraries {
   lazy val scalaz = "org.scalaz" %% "scalaz-core" % Versions.scalaz
   lazy val typesafeConfig = "com.typesafe" % "config" % Versions.typesafeConfig
 
+  lazy val logback = "ch.qos.logback" % "logback-classic" % Versions.logback
   lazy val paypalCore = "com.paypal.sdk" % "paypal-core" % Versions.paypalCore
   lazy val paypalApi = "com.paypal.sdk" % "rest-api-sdk" % Versions.paypalApi
   lazy val javaxMail = "com.sun.mail" % "javax.mail" % Versions.javaxMail

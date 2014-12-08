@@ -29,7 +29,7 @@ class UserRest extends Rest with KitchenRestAuth {
           else
             register_user.invite_code match {
               case None => {
-                println("\nRegistering user '" + email + "'\n")
+                JobSettings.logger.info("Registering user '" + email + "'")
                 val invite = InviteCodes.createInviteCode(register_user.copy(email=email))
                 val emailSender = JobSettings.processor.actorOf(Props[SendEmailJob],
                   "register_user_" + "_" + invite.code)
@@ -41,7 +41,7 @@ class UserRest extends Rest with KitchenRestAuth {
                   case None => Error(404, "No invite code found for user '" + email + "'.")
                   case Some(invite) => {
                     if (code.equals(invite.code)) {
-                      println("\nVerifying user '" + email + "'\n")
+                      JobSettings.logger.info("Verifying user '" + email + "'")
                       val newUser = Users.createUser(invite)
                       InviteCodes.delete(email)
                       JSONResponse(newUser, 1)
@@ -60,7 +60,7 @@ class UserRest extends Rest with KitchenRestAuth {
           Users.read(user_credential.email.toLowerCase) match {
             case Some(u) =>
               if ((LoginValidator.checkIfPWMatch(u.password, user_credential.password)) && (u.confirmed)) {
-                println("\nLogging in user '" + u.email + "'\n")
+                JobSettings.logger.info("Logging in user '" + u.email + "'")
                 JSONResponse(u.copy(invite_code = None), 1)
               }
               else Error(400, "POST credentials are invalid.")

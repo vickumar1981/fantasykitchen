@@ -3,7 +3,11 @@ package com.kitchenfantasy.jobs
 import akka.actor.ActorSystem
 import com.kitchenfantasy.server.GlobalConfiguration
 
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+
 object JobSettings {
+  lazy val logger = LoggerFactory.getLogger("com.kitchenfantasy.server")
   lazy val processor = ActorSystem("KitchenJobsProcessor")
   lazy val config = GlobalConfiguration.config
 

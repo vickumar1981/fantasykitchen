@@ -10,6 +10,7 @@ object Versions {
   val commonsIO = "1.3.2"
   val liftJson = "2.6-M4"
 
+  val logback = "1.0.6"
   val paypalCore = "1.6.5"
   val paypalApi = "0.12.1"
   val javaxMail = "1.5.2"
