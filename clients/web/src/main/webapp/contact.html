@@ -1,0 +1,32 @@
+<lift:surround with="default" at="content">
+    <div class="row">
+        <div class="col-sm-12">
+            <h2 class="title text-center">Contact Us</h2>
+        </div>
+        <div class="register-req" data-lift="msgs"></div>
+        <div class="col-sm-2"></div>
+        <div class="col-sm-5">
+            <div class="login-form">
+                <form>
+                <h2>Contact Us About Your Order</h2>
+                <form class="lift:form.ajax">
+                    <div class="lift:ViewProducts.sendOrderEmail">
+                        <div id="order_contact_form">
+                            <input id="order_id" type="text" placeholder="Order ID" />
+                            <textarea id="contact_email" name="message"
+                                      placeholder="Please enter your comments here..."
+                                      rows="5"></textarea>
+                            <br/><br/>
+                            <div style="display:none" id="ajax-loader">
+                                <img src="/images/ajax-loader.gif" width="16" height="16"/>
+                            </div>
+                            <input type="hidden" id="process_contact_email" />
+                            <button type="submit" class="btn btn-default">Contact Us</button>
+                            <br/><br/>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        <div class="col-sm-5"></div>
+    </div>
+</lift:surround>

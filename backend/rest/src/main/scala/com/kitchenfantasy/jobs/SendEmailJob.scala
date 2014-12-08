@@ -1,22 +1,17 @@
 package com.kitchenfantasy.jobs
 
 import java.util.Properties
-import javax.mail.Message
-import javax.mail.MessagingException
-import javax.mail.PasswordAuthentication
-import javax.mail.Session
-import javax.mail.Transport
-import javax.mail.internet.InternetAddress
-import javax.mail.internet.MimeMessage
+import javax.mail.{Message, MessagingException, PasswordAuthentication, Session, Transport}
+import javax.mail.internet.{InternetAddress, MimeMessage}
 
 import akka.actor.Actor
 import com.kitchenfantasy.model.{InviteCode, Order, OrderValidator}
 
 case class RegistrationEmail (invite: InviteCode)
 case class OrderConfirmationEmail (order: Order)
+case class OrderInfoEmail (order_id: String, from: String, info: String)
 
 class SendEmailJob extends Actor {
-
   private def emailProperties = {
     val props = new Properties()
     props.put("mail.smtp.auth", JobSettings.email.auth)
@@ -26,7 +21,8 @@ class SendEmailJob extends Actor {
     props
   }
 
-  private def emailSession (props: Properties) = {
+  private def emailSession () = {
+    val props = emailProperties
     val session = Session.getInstance(props,
       new javax.mail.Authenticator() {
         protected override def getPasswordAuthentication(): PasswordAuthentication = {
@@ -36,24 +32,38 @@ class SendEmailJob extends Actor {
     session
   }
 
-  private def emailMessage (s: Session, to:String, subject: String, text:String) = {
+  private def emailMessage (s: Session, from: String,
+                            to:String, subject: String, text:String) = {
     val message = new MimeMessage(s)
-    message.setFrom(new InternetAddress(JobSettings.email.from))
+    message.setFrom(new InternetAddress(from))
     message.setRecipients(Message.RecipientType.TO, to.toLowerCase)
     message.setSubject(subject)
     message.setText(text)
     message
   }
 
-  private def sendOrderConfirmationEmail(job: OrderConfirmationEmail) = {
-    val props = emailProperties
-    val session = emailSession (props)
-
+  private def sendOrderInfoEmail (job: OrderInfoEmail) = {
+    val session = emailSession
     try {
-      val message = emailMessage(session, job.order.email, EmailTemplates.confirm_order.subject,
-                                  EmailTemplates.confirm_order.body(job.order.id.getOrElse(""),
-                                  "xxxx" + (job.order.credit_card.cc_number takeRight 4),
-                                  OrderValidator.formatPrice(job.order.total.getOrElse(0L))))
+      val message = emailMessage(session, job.from,
+        JobSettings.email.from,
+        EmailTemplates.order_info.subject(job.order_id, job.from),
+        EmailTemplates.order_info.body(job.order_id, job.from, job.info))
+      Transport.send(message)
+    } catch {
+      case (e: MessagingException) => JobSettings.logger.warn("Error sending order information email from  '"
+        + job.from + "'")
+    }
+  }
+
+  private def sendOrderConfirmationEmail (job: OrderConfirmationEmail) = {
+    val session = emailSession
+    try {
+      val message = emailMessage(session, JobSettings.email.from,
+                      job.order.email, EmailTemplates.confirm_order.subject,
+                      EmailTemplates.confirm_order.body(job.order.id.getOrElse(""),
+                        "xxxx" + (job.order.credit_card.cc_number takeRight 4),
+                        OrderValidator.formatPrice(job.order.total.getOrElse(0L))))
       Transport.send(message)
       JobSettings.logger.info("Sent order confirmation email to '" + job.order.email.toLowerCase + "'")
     } catch {
@@ -62,12 +72,11 @@ class SendEmailJob extends Actor {
     }
   }
 
-  private def sendRegistrationEmail(job: RegistrationEmail) = {
-    val props = emailProperties
-    val session = emailSession (props)
-
+  private def sendRegistrationEmail (job: RegistrationEmail) = {
+    val session = emailSession
     try {
-      val message = emailMessage(session, job.invite.user.email, EmailTemplates.registration.subject,
+      val message = emailMessage(session, JobSettings.email.from,
+                      job.invite.user.email, EmailTemplates.registration.subject,
                       EmailTemplates.registration.body(job.invite.code))
       Transport.send(message)
       JobSettings.logger.info("Sent registration email to '" + job.invite.user.email.toLowerCase + "'")
@@ -86,6 +95,11 @@ class SendEmailJob extends Actor {
 
     case (job: OrderConfirmationEmail) => {
       sendOrderConfirmationEmail(job)
+      context.stop(self)
+    }
+
+    case (job: OrderInfoEmail) => {
+      sendOrderInfoEmail(job)
       context.stop(self)
     }
   }

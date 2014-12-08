@@ -30,6 +30,20 @@ class ProductsRest extends Rest with KitchenRestAuth {
         case (string, None) => Error(400, "POST data doesn't conform to type user credential.")
       }
 
+    case POST("products" :: "order" :: "email" :: Nil, raw) =>
+      SerializationProvider.read[OrderContactInfo](raw) match {
+        case (string, Some(orderContact)) =>
+          Orders.read(orderContact.order_id) match {
+            case Some(o) => {
+              val emailSender = JobSettings.processor.actorOf(Props[SendEmailJob],
+                "user_order_info" + "_" + o.id.getOrElse("") + "_" + System.currentTimeMillis)
+              emailSender ! OrderInfoEmail(o.id.get, o.email, orderContact.info)
+              JSONResponse("OK", 1)
+            }
+            case _ => Error(400, "No order found with id '" + orderContact.order_id + "'.")
+          }
+        case (string, None) => Error(400, "POST data doesn't conform to type order contact information.")
+      }
     case POST("products" :: "order" :: Nil, raw) =>
       SerializationProvider.read[Transaction](raw) match {
         case (string, Some(transaction)) =>

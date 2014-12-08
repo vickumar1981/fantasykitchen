@@ -43,3 +43,5 @@ case class Order (email: String, credit_card: CCInfo, address: Address,
                   subtotal: Option[Long] = None, tax: Option[Long] = None,
                   promo: Option[Promo] = None, timestamp: Option[Long] = None,
                   id: Option[String] = None, transaction_id: Option[String] = None)
+
+case class OrderContactInfo (order_id: String, info: String)

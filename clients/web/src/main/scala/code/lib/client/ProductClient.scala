@@ -27,6 +27,18 @@ object ProductClient extends Loggable {
     } else ""
   }
 
+  def sendOrderEmail (order_id: String, body: String) : Option[ApiOK] = {
+    val orderInfo = OrderContactInfo (order_id, body)
+    val result = Http(ApiClient.products.sendOrderEmail(orderInfo) OK as.String).either
+    result() match {
+      case Right(content) => {
+        val response = JsonParser.parse(content).extract[ApiOK]
+        Some(response)
+      }
+      case _ => None
+    }
+  }
+
   def viewOrders (): Option[ApiOrders] = {
     if (currentUser.isDefined)
       currentUser.get match {

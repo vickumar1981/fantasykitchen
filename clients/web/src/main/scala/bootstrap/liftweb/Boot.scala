@@ -60,6 +60,7 @@ class Boot {
       Menu("Home") / "index",
       Menu("Login") / "login",
       Menu("Cart") / "cart",
+      Menu("Contact") / "contact",
       Menu("Orders") /"orders" >> If(() => UserClient.isLoggedIn, ""),
       Menu("Checkout") /"checkout" >> If(() => UserClient.isLoggedIn, ""))
 

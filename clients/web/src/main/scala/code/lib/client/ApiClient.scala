@@ -10,6 +10,7 @@ import net.liftweb.json.Printer._
 import com.kitchenfantasy.model._
 
 case class ApiUser(data: User, rows: Integer)
+case class ApiOK (data: String, rows: Integer)
 case class ApiError(statusCode: Int, description: String)
 case class ApiProduct(data: List[Product], rows: Integer)
 case class ApiOrder(data: Order, rows: Integer)
@@ -31,5 +32,7 @@ object ApiClient {
     def view = url(baseUrl + "/products").GET
     def order(t: Transaction) = url(baseUrl + "/products/order").POST.setBody(compact(render(decompose(t))))
     def viewOrders(u: UserCredential) = url(baseUrl + "/products/orders").POST.setBody(compact(render(decompose(u))))
+    def sendOrderEmail(u: OrderContactInfo) =
+      url(baseUrl + "/products/order/email").POST.setBody(compact(render(decompose(u))))
   }
 }

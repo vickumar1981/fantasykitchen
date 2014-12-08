@@ -29,6 +29,14 @@ object JobSettings {
 }
 
 object EmailTemplates {
+
+  object order_info {
+    def subject (order_id: String, from: String) = from + ": Order - " + order_id
+    def body (order_id: String, from: String, body: String) =
+    { "User: " + from + ".\n\nOrder ID: " + order_id + "\n\n\n" +
+      body + "\n\n\n" }
+  }
+
   object confirm_order {
     lazy val subject = "Thanks! Your Order has been confirmed."
 
