@@ -69,6 +69,17 @@ object UserClient extends UserCookieManager with Loggable {
     else None
   }
 
+  def forgotPw (u: UserCredential): Option[ApiUser] = {
+    val result = Http(ApiClient.user.forgotPw(u) OK as.String).either
+    result() match {
+      case Right(content) => {
+        val u = JsonParser.parse(content).extract[ApiUser]
+        Some(u)
+      }
+      case _  => None
+    }
+  }
+
   def registerUser (u: User): Option[ApiUser] = {
     val result = Http(ApiClient.user.register(u) OK as.String).either
     result() match {

@@ -26,7 +26,7 @@ case class CCInfo (cc_type: String, cc_number: String, cc_expiry_month: Int,
                     cc_expiry_year: Int, first_name: String, last_name: String,
                     primary: Boolean = false)
 
-case class UserCredential (email: String, password: String)
+case class UserCredential (email: String, password: String, invite_code: Option[String] = None)
 
 case class UserUpdate (credential: UserCredential, address: Address, credit_card: CCInfo)
 

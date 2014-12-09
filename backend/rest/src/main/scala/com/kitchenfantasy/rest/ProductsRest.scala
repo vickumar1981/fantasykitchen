@@ -44,6 +44,7 @@ class ProductsRest extends Rest with KitchenRestAuth {
           }
         case (string, None) => Error(400, "POST data doesn't conform to type order contact information.")
       }
+
     case POST("products" :: "order" :: Nil, raw) =>
       SerializationProvider.read[Transaction](raw) match {
         case (string, Some(transaction)) =>

@@ -58,15 +58,16 @@ object EmailTemplates {
       "to complete your registration\n\n\n" +
       "Verification Code: " + code + "\n\n\n\n" +
       "***** DO NOT RESPOND TO THIS MESSAGE *****\n\n" }
+  }
 
-    /*
-    def body {code: String} = {
-      <html lang="en">
-        <head></head>
-        <body>
-        </body>
-      </html>
-    }
-    */
+  object pw_reminder {
+    lazy val subject = "Update your Fantasy Kitchen password"
+
+    def body (code: String) = { "Update your Fantasy Kitchen password.\n\n" +
+      "If you did not request a password reminder please disregard this email.\n\n" +
+      "Please use the following verification code\n" +
+      "to update your password\n\n\n" +
+      "Verification Code: " + code + "\n\n\n\n" +
+      "***** DO NOT RESPOND TO THIS MESSAGE *****\n\n" }
   }
 }

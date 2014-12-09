@@ -5,9 +5,10 @@ import javax.mail.{Message, MessagingException, PasswordAuthentication, Session,
 import javax.mail.internet.{InternetAddress, MimeMessage}
 
 import akka.actor.Actor
-import com.kitchenfantasy.model.{InviteCode, Order, OrderValidator}
+import com.kitchenfantasy.model.{UserCredential, InviteCode, Order, OrderValidator}
 
 case class RegistrationEmail (invite: InviteCode)
+case class ForgotPwEmail (credential: UserCredential)
 case class OrderConfirmationEmail (order: Order)
 case class OrderInfoEmail (order_id: String, from: String, info: String)
 
@@ -87,17 +88,34 @@ class SendEmailJob extends Actor {
     }
   }
 
+  private def sendForgotPwEmail (job: ForgotPwEmail) = {
+    val session = emailSession
+    try {
+      val message = emailMessage(session, JobSettings.email.from,
+        job.credential.email, EmailTemplates.pw_reminder.subject,
+        EmailTemplates.pw_reminder.body(job.credential.invite_code.getOrElse("")))
+      Transport.send(message)
+      JobSettings.logger.info("Sent password reminder email to '" + job.credential.email.toLowerCase + "'")
+
+    } catch {
+      case (e: MessagingException) => JobSettings.logger.warn("\nError sending password reminder email to '"
+        + job.credential.email.toLowerCase + "'")
+    }
+  }
+
   def receive = {
     case (job: RegistrationEmail) => {
       sendRegistrationEmail(job)
       context.stop(self)
     }
-
+    case (job: ForgotPwEmail) => {
+      sendForgotPwEmail(job)
+      context.stop(self)
+    }
     case (job: OrderConfirmationEmail) => {
       sendOrderConfirmationEmail(job)
       context.stop(self)
     }
-
     case (job: OrderInfoEmail) => {
       sendOrderInfoEmail(job)
       context.stop(self)

@@ -20,6 +20,33 @@ class UserRest extends Rest with KitchenRestAuth {
         case (string, None) => Error(400, "POST data doesn't conform to type user update.")
       }
 
+    case POST("user" :: "forgot_pw" :: Nil, raw) =>
+      SerializationProvider.read[UserCredential](raw) match {
+        case (string, Some(credential)) =>
+          Users.read(credential.email.toLowerCase) match {
+            case Some(u) =>
+              credential.invite_code match {
+                case None => {
+                  val newUser = Users.updateInvite(u)
+                  val emailSender = JobSettings.processor.actorOf(Props[SendEmailJob],
+                    "forgot_pw_reminder" + "_" + newUser.invite_code.get)
+                  emailSender ! ForgotPwEmail(credential.copy(invite_code = newUser.invite_code))
+                  JSONResponse(User("", "", "", ""), 1)
+                }
+                case Some(invite) => {
+                  if ((u.invite_code.isDefined) && (invite.equals(u.invite_code.get))) {
+                    val newUser = Users.updatePw(u, LoginValidator.encryptPW(credential.password))
+                    JSONResponse(newUser, 1)
+                  }
+                  else Error(400, "POST credentials are invalid.")
+                }
+              }
+            case None => Error(400, "User '" + credential.email.toLowerCase +
+              "' does not exists.  Unable to send password reminder.")
+          }
+        case (string, None) => Error(400, "POST data doesn't conform to type user credential.")
+      }
+
     case POST("user" :: "register" :: Nil, raw) =>
       SerializationProvider.read[User](raw) match {
         case (string, Some(register_user)) => {

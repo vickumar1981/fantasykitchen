@@ -26,6 +26,7 @@ object ApiClient {
     def updateInfo(u: UserUpdate) = url(baseUrl + "/user/info").POST.setBody(compact(render(decompose(u))))
     def register(u: User) = url(baseUrl + "/user/register").POST.setBody(compact(render(decompose(u))))
     def login(u: UserCredential) = url(baseUrl + "/user/login").POST.setBody(compact(render(decompose(u))))
+    def forgotPw (u: UserCredential) = url(baseUrl + "/user/forgot_pw").POST.setBody(compact(render(decompose(u))))
   }
 
   object products {

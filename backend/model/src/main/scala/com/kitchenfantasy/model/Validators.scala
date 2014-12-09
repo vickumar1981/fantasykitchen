@@ -111,6 +111,33 @@ object LoginValidator {
     BCrypt.checkpw(pw2, pw1)
   }
 
+  def validateLogin (e: String, pw: String, confirm_pw: String) = {
+    val errors = scala.collection.mutable.Map[String,String]()
+
+    if (e.isEmpty)
+      errors += "email" -> "Email is required"
+    else if (!e.isEmpty && !isValidEmail(e))
+      errors += "email" -> "Email is invalid."
+    else
+      errors += "email" -> ""
+
+    if (pw.isEmpty)
+      errors += "pw" -> "Password is required."
+    else if (pw.length < minPWLength)
+      errors += "pw" -> ("Password must be at least " + minPWLength.toString + " characters.")
+    else
+      errors += "pw" -> ""
+
+    if (confirm_pw.isEmpty)
+      errors += "confirm_pw" -> "Password confirmation is required."
+    else if (!pw.isEmpty && !pw.equals(confirm_pw))
+      errors += "confirm_pw" -> "Passwords don't match"
+    else
+      errors += "confirm_pw" -> ""
+
+    errors
+  }
+
   def validateRegistration (u: User, pw: String, confirm_pw: String) = {
     val errors = scala.collection.mutable.Map[String,String]()
 

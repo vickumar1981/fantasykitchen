@@ -11,6 +11,18 @@ object Users extends RiakMapper[User]("kitchen-users") {
     u
   }
 
+  def updatePw (u: User, newPassword: String): User = {
+    val newUser = u.copy(password = newPassword)
+    update (u.email.toLowerCase, newUser)
+    addIndexes (newUser)
+  }
+
+  def updateInvite (u: User): User = {
+    val newUser = u.copy(invite_code = Some(generateId.substring(0, 10)))
+    update (u.email.toLowerCase, newUser)
+    addIndexes (newUser)
+  }
+
   def createUser (invite: InviteCode): User = {
     val newUser = invite.user.copy(confirmed = true, invite_code = Some(invite.code))
     val id = create (newUser.email.toLowerCase, newUser)
