@@ -45,7 +45,7 @@ object AddressValidator {
     else
       errors += "zip" -> ""
 
-    errors
+    errors.toMap
   }
 }
 
@@ -96,7 +96,7 @@ object CCValidator {
       errors += "cc_first_name" -> "First name is required."
     else
       errors += "cc_first_name" -> ""
-    errors
+    errors.toMap
   }
 }
 
@@ -111,7 +111,7 @@ object LoginValidator {
     BCrypt.checkpw(pw2, pw1)
   }
 
-  def validateLogin (e: String, pw: String, confirm_pw: String) = {
+  def validateLogin (e: String, pw: String, confirm_pw: String, checkPasswords: Boolean = false) = {
     val errors = scala.collection.mutable.Map[String,String]()
 
     if (e.isEmpty)
@@ -121,21 +121,22 @@ object LoginValidator {
     else
       errors += "email" -> ""
 
-    if (pw.isEmpty)
-      errors += "pw" -> "Password is required."
-    else if (pw.length < minPWLength)
-      errors += "pw" -> ("Password must be at least " + minPWLength.toString + " characters.")
-    else
-      errors += "pw" -> ""
+    if (checkPasswords) {
+      if (pw.isEmpty)
+        errors += "pw" -> "Password is required."
+      else if (pw.length < minPWLength)
+        errors += "pw" -> ("Password must be at least " + minPWLength.toString + " characters.")
+      else
+        errors += "pw" -> ""
 
-    if (confirm_pw.isEmpty)
-      errors += "confirm_pw" -> "Password confirmation is required."
-    else if (!pw.isEmpty && !pw.equals(confirm_pw))
-      errors += "confirm_pw" -> "Passwords don't match"
-    else
-      errors += "confirm_pw" -> ""
-
-    errors
+      if (confirm_pw.isEmpty)
+        errors += "confirm_pw" -> "Password confirmation is required."
+      else if (!pw.isEmpty && !pw.equals(confirm_pw))
+        errors += "confirm_pw" -> "Passwords don't match"
+      else
+        errors += "confirm_pw" -> ""
+    }
+    errors.toMap
   }
 
   def validateRegistration (u: User, pw: String, confirm_pw: String) = {
@@ -162,6 +163,6 @@ object LoginValidator {
     else
       errors += "confirm_pw" -> ""
 
-    errors
+    errors.toMap
   }
 }

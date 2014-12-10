@@ -34,23 +34,28 @@ class UserLogin extends RenderMessages {
   private var confirm_pw = registrationInfo.get._3
   private var invite_code = ""
 
+  def showErrors (errorList: Map[String,String]): Boolean = {
+    if (!errorList.filter(!_._2.isEmpty).isEmpty) {
+      errorList.foreach {
+        case (error_id, error_value) => {
+          if (error_value.length > 0)
+            S.notice (renderNotice(error_value))
+        }
+        case _ => Noop }
+      true
+    }
+    else false
+  }
+
   def register = {
     def processRegister: JsCmd = {
       val register_user = (if (registrationInfo.get._4)
         User (email.toLowerCase, pw, "", "", false, false, None, None, Some(invite_code))
       else User (email, pw, "", ""))
-      val errorList= (if (registrationInfo.get._4) List.empty
+      val errorList= (if (registrationInfo.get._4) Map.empty[String, String]
                       else LoginValidator.validateRegistration(register_user, pw, confirm_pw))
 
-      if (!errorList.filter(!_._2.isEmpty).isEmpty) {
-        errorList.foreach {
-          case (error_id, error_value) => {
-            if (error_value.length > 0)
-              S.notice (renderNotice(error_value))
-          }
-          case _ => Noop }
-      }
-      else {
+      if (!showErrors(errorList))
         UserClient.registerUser (register_user) match {
           case Some (u) =>
             u.data.invite_code match {
@@ -63,19 +68,17 @@ class UserLogin extends RenderMessages {
                 else
                   S.notice(renderNotice("The invite code was invalid.  Please check your email."))
               }
-              case None => {
+              case None =>
                 S.redirectTo(pageUrl, () => {
                   S.notice(renderNotice("An invite code was sent to your email.  " +
                     "Please check your email address"))
                   registrationInfo((email, pw, pw, true))
                 })
-              }
             }
           case _ => { S.notice(renderNotice("This account is already registered.  Please choose a different email."))
             Noop
           }
         }
-      }
       Noop
     }
 
@@ -120,8 +123,9 @@ class UserLogin extends RenderMessages {
   def logIn = {
     def processLogIn: JsCmd = {
       if (login_pw.length > 0 && login_email.length > 0)
-        if (forgotPWInfo._3)
-          if (login_pw.equals(login_confirm_pw))
+        if (forgotPWInfo._3) {
+          val errorList = LoginValidator.validateLogin(login_email, login_pw, login_confirm_pw, true)
+          if (!showErrors(errorList))
             UserClient.forgotPw(UserCredential(login_email.toLowerCase, login_pw,
               Some(login_invite_code))) match {
               case Some(u) => {
@@ -132,7 +136,8 @@ class UserLogin extends RenderMessages {
               }
               case None => S.notice(renderNotice("The invite code was invalid.  Please check your email."))
             }
-          else S.notice ("The password is incorrect. Please make sure the passwords match.")
+          else S.notice("The password is incorrect. Please make sure the passwords match.")
+        }
         else
           UserClient.loginUser (UserCredential(login_email, login_pw)) match {
             case Some (u) => {
@@ -155,23 +160,14 @@ class UserLogin extends RenderMessages {
         case Some(c) => {
           val errorList = LoginValidator.validateLogin(c.email, c.pw, c.pw)
 
-          if (!errorList.filter(!_._2.isEmpty).isEmpty) {
-            errorList.foreach {
-              case (error_id, error_value) => {
-                if (error_value.length > 0)
-                  S.notice(renderNotice(error_value))
-              }
-              case _ => Noop
-            }
-          }
-          else
+          if (!showErrors(errorList))
             UserClient.forgotPw(UserCredential(c.email, c.pw)) match {
               case Some(u) => S.redirectTo(pageUrl, () => {
                 S.notice(renderNotice("An invite code was sent to your email.  " +
                   "Please check your email address"))
                 forgotPWInfo((c.email, c.pw, true))
               })
-              case None => S.notice(renderNotice("This user already exists. Please register..."))
+              case None => S.notice(renderNotice("This user is not registered. Please register..."))
             }
         }
         case None => Noop
@@ -189,7 +185,7 @@ class UserLogin extends RenderMessages {
 
     (if (forgotPWInfo.get._3)
       "#login_email" #> SHtml.text(login_email, login_email = _, "readonly" -> "readonly") &
-        "#login_pw" #> SHtml.password(login_pw, login_pw = _, "readonly" -> "readonly") &
+        "#login_pw" #> SHtml.password(login_pw, login_pw = _) &
         "#remember_me" #> SHtml.checkbox(remember_me, (resp) => remember_me = resp,
           "readonly" -> "readonly") &
         "#process_login" #> (SHtml.hidden(() => processLogIn)) &
