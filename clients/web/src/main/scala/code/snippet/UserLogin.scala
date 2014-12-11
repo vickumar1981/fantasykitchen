@@ -4,10 +4,9 @@ package snippet
 import code.lib.client.{UserClient, ApiClient}
 import code.lib.service.RenderMessages
 import net.liftweb.common.Full
-import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.http.provider.HTTPCookie
 import net.liftweb.http.{S, RequestVar, SHtml}
-import net.liftweb.http.js.{JsCmds, JE, JsCmd}
+import net.liftweb.http.js.{JE, JsCmd}
 import net.liftweb.http.js.JsCmds.{Script, Noop}
 import net.liftweb.json.{DefaultFormats, JValue}
 
