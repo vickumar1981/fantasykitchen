@@ -1,11 +1,12 @@
 <div class="lift:ViewProducts.viewOrders">
+    <div id="instant-filter"><input type="text" id="instant-filter-input" placeholder="Search orders..."/></div>
     <div class="col-sm-12">
         <h2 class="title text-center">My Orders</h2>
     </div>
     <div class="table-responsive cart_info" align="center">
         <div class="register-req" data-lift="msgs"></div>
         <div class="col-sm-12">
-            <table class="table table-condensed">
+            <table id="order-list" class="table table-condensed">
                 <thead>
                 <tr class="orderMenu">
                     <td>Date</td>
@@ -18,16 +19,16 @@
                 <tbody>
                 <div id="orderItem">
                     <tr id="orderRow">
-                        <td>
+                        <td class="order-date">
                             <p id="orderDate"></p>
                         </td>
-                        <td align="center">
+                        <td align="center" class="order-id">
                             <p id="orderId"></p>
                         </td>
-                        <td>
+                        <td class="order-cc">
                             <p id="orderCC"></p>
                         </td>
-                        <td>
+                        <td class="order-total">
                             <p id="orderTotal"></p>
                         </td>
                         <td>
