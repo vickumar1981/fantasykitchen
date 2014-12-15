@@ -22,7 +22,6 @@ import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 
 object Main {
-
   val Port: String = "http.port"
   val Interface: String = "http.interface"
 
@@ -37,7 +36,6 @@ object Main {
 
   def main(args: Array[String]) {
     val config: Config = loadConfiguration(args)
-
     val handlers = handlersFromConfig(config)
     val publicServer = buildServer(config, handlers)
     val riakClient = setupRiakClient(config)
@@ -46,10 +44,14 @@ object Main {
     MigrationRunner.initialize(riakClient)
 
     if (args.length > 1) {
-      if (args(1).toLowerCase.equals("--import-products"))
+      if (args(1).toLowerCase.equals("--init-data")) {
+        println("\nimporting products...\n")
         MigrationRunner.importProducts()
+        println("\nimporting administrators...\n")
+        MigrationRunner.importAdmins()
+      }
       else
-        println("invalid import option: " + args(1))
+        println("\ninvalid import option: " + args(1) + "\n")
     }
     else {
       publicServer.start()

@@ -1,9 +1,8 @@
 package com.kitchenfantasy.server.migration
 
-import akka.actor.{ActorSystem, Props, actorRef2Scala}
 import com.basho.riak.client.IRiakClient
 import com.kitchenfantasy.model._
-import com.kitchenfantasy.datastore.Products
+import com.kitchenfantasy.datastore.{Products, Users}
 
 object MigrationRunner {
   def initialize(client: IRiakClient) = {
@@ -13,10 +12,19 @@ object MigrationRunner {
     client.createBucket("kitchen-orders").nVal(1).r(1).w(1).enableForSearch().lastWriteWins(true).execute()
   }
 
-  def importProducts() = {
+  def importProducts() =
     for (product <- ProductInventory.productList) {
       Products.createProduct(product)
-      println ("imported product " + product.name + ".\n")
+      println ("imported product " + product.name + ".")
     }
-  }
+
+  def importAdmins() =
+    for (admin <- AdminUsers.adminUserList)
+      Users.read(admin.toLowerCase) match {
+        case Some(u) => {
+          Users.makeAdmin(u)
+          println ("user '" + u.email + "' made administrator.")
+        }
+        case _ => println ("user '" + admin+ "' not found.")
+      }
 }

@@ -1,5 +1,9 @@
 package com.kitchenfantasy.model
 
+object AdminUsers {
+  val adminUserList = List ("vickumar@gmail.com")
+}
+
 object ProductInventory {
   val productList = Array (
       Product ("1", "Heated Butter Knife",

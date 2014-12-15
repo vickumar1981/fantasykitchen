@@ -17,6 +17,6 @@ Kitchen Backend Server
     ## this will build the deployable jar, along with a config, 
     ## it's all you need
 
-    bin/sbt "kitchen-server/run rest/src/main/resources/server.config --import-products"
+    bin/sbt "kitchen-server/run rest/src/main/resources/server.config --init-data"
 
     ## this will import an initial list of products. 

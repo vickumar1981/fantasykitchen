@@ -11,6 +11,12 @@ object Users extends RiakMapper[User]("kitchen-users") {
     u
   }
 
+  def makeAdmin (u: User): User = {
+    val newUser = u.copy(is_admin = true)
+    update (u.email.toLowerCase, newUser)
+    addIndexes(newUser)
+  }
+
   def updatePw (u: User, newPassword: String): User = {
     val newUser = u.copy(password = newPassword)
     update (u.email.toLowerCase, newUser)
