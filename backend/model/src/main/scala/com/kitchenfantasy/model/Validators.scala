@@ -103,7 +103,7 @@ object CCValidator {
 object LoginValidator {
   private def minPWLength = 6
 
-  private def isValidEmail(email: String): Boolean = """(\w+)@([\w\.]+)""".r.unapplySeq(email).isDefined
+  private def isValidEmail(email: String): Boolean = """(.+)@([\w\.]+)""".r.unapplySeq(email).isDefined
 
   def encryptPW (pw: String) = BCrypt.hashpw(pw, BCrypt.gensalt())
 

@@ -2,7 +2,7 @@ package code
 package snippet
 
 import code.lib.client.UserClient
-import code.lib.service.{RenderMessages, CartViewer}
+import code.lib.service.CartViewer
 import net.liftweb.common.{Empty, Full}
 import net.liftweb.http.js.JsCmds._
 import net.liftweb.http.js.{JsCmd, JsCmds}

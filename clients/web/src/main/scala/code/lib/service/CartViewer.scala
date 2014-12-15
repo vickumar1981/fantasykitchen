@@ -1,10 +1,9 @@
 package code.lib.service
 
 import code.lib.client.{UserClient, ProductClient}
-import net.liftweb.http.js.JsCmd
-import net.liftweb.http.js.JsCmds
+import net.liftweb.http.js.{JE, JsCmd, JsCmds}
 import net.liftweb.http.js.JsCmds._
-import net.liftweb.http.{RequestVar, S, SHtml}
+import net.liftweb.http.{SHtml, RequestVar, S}
 import net.liftweb.util.CssSel
 import net.liftweb.util.Helpers.strToCssBindPromoter
 import com.kitchenfantasy.model.{Product, Order, OrderValidator}
@@ -71,6 +70,21 @@ trait CartViewer extends RenderMessages {
         SetHtml("cart_item", shoppingCartTemplate.is.applyAgain)
       })
 
+  private def placeConfirmedOrder (order: List[Product]) (s: String) = {
+    S.notice("Placing order...")
+    ProductClient.orderProducts(order) match {
+      case Some(order) => {
+        S.redirectTo ("/orders", ()=> {
+          S.notice (renderNotice("Order successful."))
+        })}
+      case _ => {
+        S.redirectTo ("/checkout", () => {
+          S.notice(renderNotice("The credit card information is invalid."))
+        })}
+    }
+    JsCmds.Noop
+  }
+
   private def showOrderSummary (order: List[Product]): CssSel = {
     val (total, subtotal, tax) = OrderValidator.orderTotals(order)
     ".order_subtotal *" #> ("Subtotal: " + OrderValidator.formatPrice(subtotal)) &
@@ -78,27 +92,13 @@ trait CartViewer extends RenderMessages {
       ".order_total *" #> ("Total: " + OrderValidator.formatPrice(total)) &
     (if (UserClient.isLoggedIn)
       "#checkout [style!]" #> "display:none" &
-      "#checkout [onclick]" #> SHtml.ajaxInvoke(()=> {
-          if (showConfirmation) {
-            S.notice("Placing order...")
-            ProductClient.orderProducts(order) match {
-              case Some(order) => {
-                S.redirectTo ("/orders", ()=> {
-                  S.notice (renderNotice("Order successful."))
-                })}
-              case _ => {
-                S.redirectTo ("/checkout", () => {
-                  S.notice(renderNotice("The credit card information is invalid."))
-                })}
-            }
-          }
-          else if (showOrderDetails) {
-            S.redirectTo("/orders", () => viewOrderProductDetails(None))
-          }
-          else {
-            S.redirectTo("/checkout")
-          }
-        }) else "#checkout [style+]" #> "display:none")
+      "#checkout [onclick]" #>
+        (if (showConfirmation) SHtml.ajaxCall(JE.JsRaw("$('#checkout').hide()"), placeConfirmedOrder(order) _)
+         else if (showOrderDetails)
+          SHtml.ajaxInvoke(() => S.redirectTo("/orders", () => viewOrderProductDetails(None)))
+         else
+          SHtml.ajaxInvoke(()=> S.redirectTo("/checkout")))
+    else "#checkout [style+]" #> "display:none")
   }
 
   protected def showOrderItem (o: Order): CssSel =
