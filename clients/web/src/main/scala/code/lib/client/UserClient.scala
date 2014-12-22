@@ -20,6 +20,15 @@ object UserClient extends UserCookieManager with Loggable {
     else false
   }
 
+  def isAdmin (): Boolean = {
+    if (currentUser.isDefined)
+      currentUser.get match {
+        case Full(u) => u.is_admin
+        case _ => false
+      }
+    else false
+  }
+
   def getUserAddress (): Address = {
     val emptyAddress = Address("", "", "", "", "")
     if (currentUser.isDefined)

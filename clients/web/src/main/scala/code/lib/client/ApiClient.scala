@@ -8,6 +8,7 @@ import net.liftweb.json.Extraction._
 import net.liftweb.json.JsonAST._
 import net.liftweb.json.Printer._
 import com.kitchenfantasy.model._
+import java.util.UUID
 
 case class ApiUser(data: User, rows: Integer)
 case class ApiOK (data: String, rows: Integer)
@@ -20,6 +21,7 @@ object ApiClient {
   private implicit val formats = DefaultFormats
   private def baseUrl = "http://localhost:8080"
   object currentUser extends SessionVar[Box[User]](Empty)
+  object sessionId extends SessionVar[String](UUID.randomUUID().toString.replace("-",""))
   object myCart extends SessionVar[Box[List[Product]]](Empty)
 
   object user {
@@ -33,6 +35,8 @@ object ApiClient {
     def view = url(baseUrl + "/products").GET
     def order(t: Transaction) = url(baseUrl + "/products/order").POST.setBody(compact(render(decompose(t))))
     def viewOrders(u: UserCredential) = url(baseUrl + "/products/orders").POST.setBody(compact(render(decompose(u))))
+    def adminQuery(search: OrderSearch) =
+      url(baseUrl + "/products/orders/q").POST.setBody(compact(render(decompose(search))))
     def sendOrderEmail(u: OrderContactInfo) =
       url(baseUrl + "/products/order/email").POST.setBody(compact(render(decompose(u))))
   }

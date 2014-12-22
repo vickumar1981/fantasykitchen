@@ -68,7 +68,6 @@ a#scrollUp i{
   font-size: 30px;
 }
 
-
 /*************************
 *******Header CSS******
 **************************/
@@ -2370,7 +2369,7 @@ form > #checkoutForm > .col-sm-4 > .form-two > select {
 
 .replay-box span {
   color: #FE980F;
-  float: right;
+  float: left;
   font-weight: 700;
   margin-top: 21px;
 }

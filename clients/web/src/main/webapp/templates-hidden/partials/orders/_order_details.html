@@ -1,4 +1,5 @@
 <div class="lift:ViewProducts.viewOrderDetails">
+
     <div class="col-sm-12">
         <h2 class="title text-center">Order Details</h2>
     </div>
@@ -7,6 +8,8 @@
             <thead>
             <tr class="orderMenu">
                 <td>Date</td>
+                <td align="center">Email</td>
+                <td align="center">Name</td>
                 <td align="center">Order ID</td>
                 <td>Credit Card #</td>
             </tr>
@@ -16,6 +19,12 @@
                 <tr id="orderRow">
                     <td>
                         <p id="orderDate"></p>
+                    </td>
+                    <td>
+                        <p id="orderEmail"></p>
+                    </td>
+                    <td>
+                        <p id="orderName"></p>
                     </td>
                     <td align="center">
                         <p id="orderId"></p>
@@ -29,6 +38,7 @@
         </table>
         <br/>
     </div>
+
     <div class="table-responsive cart_info col-sm-12" align="center">
         <table class="table table-condensed">
             <thead>

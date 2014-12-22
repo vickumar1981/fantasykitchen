@@ -15,17 +15,35 @@ class ProductsRest extends Rest with KitchenRestAuth {
       JSONResponse(products.sortBy(p => (p.name, p.id)), products.size)
     }
 
+    case POST("products" :: "orders" :: "q" :: Nil, raw) =>
+      SerializationProvider.read[OrderSearch](raw) match {
+        case (string, Some(search)) =>
+          authorizeCredentials(search.credential, (u) => {
+            if (u.is_admin) {
+              val orders = Orders.findByQuery(search.query).sortBy(o => {
+                if (o.timestamp.isDefined)
+                  -o.timestamp.get
+                else
+                  -System.currentTimeMillis
+              })
+              JSONResponse(orders, orders.size)
+            }
+            else Error(400, "POST credentials are invalid.")
+          })
+        case (string, None) => Error(400, "POST data doesn't conform to type user credential.")
+      }
+
     case POST("products" :: "orders" :: Nil, raw) =>
       SerializationProvider.read[UserCredential](raw) match {
         case (string, Some(credential)) =>
           authorizeCredentials(credential, (u) => {
-            val orders = Orders.findByEmail(u.email)
-            JSONResponse(orders.sortBy(o => {
+            val orders = Orders.findByEmail(u.email).sortBy(o => {
               if (o.timestamp.isDefined)
                 - o.timestamp.get
               else
                 - System.currentTimeMillis
-            }), orders.size)
+            }).slice(0, 30)
+            JSONResponse(orders, orders.size)
           })
         case (string, None) => Error(400, "POST data doesn't conform to type user credential.")
       }
