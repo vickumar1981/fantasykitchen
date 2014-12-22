@@ -25,11 +25,11 @@ object Orders extends RiakMapper[Order]("kitchen-orders") {
       | var data = Riak.mapValuesJson(value)[0];
       | var search = data.email + ',' + data.credit_card.first_name + ' ' +
       |   data.credit_card.last_name + ',' + data.id + ',' + data.transaction_id;
-      | if (search.indexOf('%s') > -1)
+      | if (search.toLowerCase().indexOf('%s') > -1)
       |   return [data];
       | return [];
       |}
-    """.format(text).stripMargin)
+    """.format(text.toLowerCase).stripMargin)
 
   def findByEmail (email: String): List[Order] = findByIndex("email", email)
 
