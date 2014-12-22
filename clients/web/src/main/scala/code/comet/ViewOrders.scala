@@ -45,7 +45,7 @@ class ViewOrders extends CometActor with CometListener with CartViewer {
     case (o: Order) =>
       ApiClient.currentUser.get match {
         case Full(u) =>
-          if (u.email.equals(o.email))
+          if (u.email.equals(o.email) || UserClient.isAdmin)
             reRender()
         case _ =>
       }
