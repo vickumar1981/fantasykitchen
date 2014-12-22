@@ -45,3 +45,8 @@ case class Order (email: String, credit_card: CCInfo, address: Address,
                   id: Option[String] = None, transaction_id: Option[String] = None)
 
 case class OrderContactInfo (order_id: String, info: String)
+
+case class OrderQuery (text: String = "", start_date: Long = System.currentTimeMillis - 432000000,
+                       end_date: Long = System.currentTimeMillis)
+
+case class OrderSearch (credential: UserCredential, query: OrderQuery)

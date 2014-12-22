@@ -42,9 +42,14 @@ class Boot {
       DB.defineConnectionManager(util.DefaultConnectionIdentifier, vendor)
     }
 
-    LiftRules.earlyInStateful.append {
-      case Full(r) if (!UserClient.isLoggedIn()) => autoLoginUser(r.cookies)
-      case _ =>
+    try {
+      LiftRules.earlyInStateful.append {
+        case Full(r) if (!UserClient.isLoggedIn) => autoLoginUser(r.cookies)
+        case _ =>
+      }
+    }
+    catch {
+      case (e: Exception) =>
     }
 
     // Use Lift's Mapper ORM to populate the database

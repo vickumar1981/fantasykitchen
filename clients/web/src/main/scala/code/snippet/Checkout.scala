@@ -67,7 +67,7 @@ class Checkout extends CartViewer {
       if (!errorList.filter(!_._2.isEmpty).isEmpty) {
         errorList.foreach {
           case (error_id, error_value) => {
-            S.error (error_id + "_err", renderError(error_value))
+            S.error (error_id + "_err", renderValidation(error_value))
           }
           case _ => Noop }
       }

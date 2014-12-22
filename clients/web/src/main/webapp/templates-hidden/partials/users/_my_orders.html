@@ -1,5 +1,4 @@
-<div class="lift:ViewProducts.viewOrders">
-    <div id="instant-filter"><input type="text" id="instant-filter-input" placeholder="Search orders..."/></div>
+<div class="lift:comet?type=ViewOrders">
     <div class="col-sm-12">
         <h2 class="title text-center">My Orders</h2>
     </div>
@@ -10,6 +9,8 @@
                 <thead>
                 <tr class="orderMenu">
                     <td>Date</td>
+                    <td>Email</td>
+                    <td>Name</td>
                     <td align="center">Order ID</td>
                     <td>Credit Card #</td>
                     <td>Total</td>
@@ -21,6 +22,12 @@
                     <tr id="orderRow">
                         <td class="order-date">
                             <p id="orderDate"></p>
+                        </td>
+                        <td class="order-email">
+                            <p id="orderEmail"></p>
+                        </td>
+                        <td class="order-name">
+                            <p id="orderName"></p>
                         </td>
                         <td align="center" class="order-id">
                             <p id="orderId"></p>

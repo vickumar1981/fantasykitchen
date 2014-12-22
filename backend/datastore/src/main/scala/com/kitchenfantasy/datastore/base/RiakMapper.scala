@@ -47,13 +47,28 @@ class RiakMapper[T : Manifest](bucketName: String) {
   }
 
   private def toJSData = new JSSourceFunction(
-        "function(value, keyData, arg) {" +
-        "var data = Riak.mapValuesJson(value)[0];" +
-        "return [data];}")
+    """
+      |function(value, keyData, arg) {
+      | var data = Riak.mapValuesJson(value)[0];
+      | return [data];
+      |}
+    """.stripMargin)
 
   def findByIndex (indexName: String, indexValue: String): List[T] = {
     val query = new BinValueQuery(BinIndex.named(indexName), bucketName, indexValue)
     val results = DataProvider.client.mapReduce(query).addMapPhase(toJSData, true).execute().getResultRaw()
+    SerializationProvider.fromStringToJson[List[T]](results)
+  }
+
+  def findByIndex (indexName: String, startValue: Long, endValue: Long,
+                   searchJs: Option[JSSourceFunction] = None): List[T] = {
+    val query = new IntRangeQuery(IntIndex.named(indexName), bucketName, startValue, endValue)
+    val results = searchJs match {
+      case Some(func) =>
+        DataProvider.client.mapReduce(query).addMapPhase(func, true).execute().getResultRaw()
+      case None =>
+        DataProvider.client.mapReduce(query).addMapPhase(toJSData, true).execute().getResultRaw()
+    }
     SerializationProvider.fromStringToJson[List[T]](results)
   }
 

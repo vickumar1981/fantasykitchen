@@ -39,6 +39,25 @@ object ProductClient extends Loggable {
     }
   }
 
+  def adminSearch (query: OrderQuery): Option[ApiOrders] = {
+    if (currentUser.isDefined)
+      currentUser.get match {
+        case Full(u) => {
+          val credential = UserCredential(u.email, u.password)
+          val search = OrderSearch(credential, query)
+          val result = Http(ApiClient.products.adminQuery(search) OK as.String).either
+          result() match {
+            case Right(content) => {
+              val orders = JsonParser.parse(content).extract[ApiOrders]
+              Some(orders)
+            }
+            case _ => None
+          }
+        }
+      }
+    else None
+  }
+
   def viewOrders (): Option[ApiOrders] = {
     if (currentUser.isDefined)
       currentUser.get match {

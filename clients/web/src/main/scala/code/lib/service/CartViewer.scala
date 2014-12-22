@@ -1,6 +1,7 @@
 package code.lib.service
 
-import code.lib.client.{UserClient, ProductClient}
+import code.comet.OrderService
+import code.lib.client.{ApiClient, UserClient, ProductClient}
 import net.liftweb.http.js.{JE, JsCmd, JsCmds}
 import net.liftweb.http.js.JsCmds._
 import net.liftweb.http.{SHtml, RequestVar, S}
@@ -75,6 +76,7 @@ trait CartViewer extends RenderMessages {
     ProductClient.orderProducts(order) match {
       case Some(order) => {
         S.redirectTo ("/orders", ()=> {
+          OrderService ! order.data
           S.notice (renderNotice("Order successful."))
         })}
       case _ => {
@@ -95,7 +97,10 @@ trait CartViewer extends RenderMessages {
       "#checkout [onclick]" #>
         (if (showConfirmation) SHtml.ajaxCall(JE.JsRaw("$('#checkout').hide()"), placeConfirmedOrder(order) _)
          else if (showOrderDetails)
-          SHtml.ajaxInvoke(() => S.redirectTo("/orders", () => viewOrderProductDetails(None)))
+          SHtml.ajaxInvoke(() => S.redirectTo("/orders", () => {
+            OrderService ! (ApiClient.currentUser.get.get.email, ApiClient.sessionId.get, true)
+            viewOrderProductDetails(None)
+          }))
          else
           SHtml.ajaxInvoke(()=> S.redirectTo("/checkout")))
     else "#checkout [style+]" #> "display:none")
@@ -108,7 +113,13 @@ trait CartViewer extends RenderMessages {
       "#orderTotal *" #> OrderValidator.formatPrice(o.total.getOrElse(0L)) &
       "#viewOrderDetails [style!]" #> "display:none" &
       "#viewOrderDetails [onclick]" #> SHtml.ajaxInvoke(() =>
-        S.redirectTo("/orders", () => viewOrderProductDetails(Some(o))))
+        S.redirectTo("/orders", () => {
+          OrderService ! (ApiClient.currentUser.get.get.email, ApiClient.sessionId.get, false)
+          viewOrderProductDetails(Some(o))
+        })) &
+      "#orderName *" #> (o.credit_card.first_name + " " + o.credit_card.last_name) &
+      "#orderEmail *" #> o.email
+
 
   private def renderProductsList (productList: List[Product], showOrderHeader: Boolean = false): CssSel = {
     if (productList.size > 0) {
