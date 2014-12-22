@@ -40,13 +40,13 @@ trait CartViewer extends RenderMessages {
     SetHtml("cart_count", <span>{ProductClient.updateCartText}</span>)
   }
 
-  private def showCartItem (p: Product): CssSel =
+  private def showCartItem (p: Product, showOrderDetails: Boolean = false): CssSel =
     "#cart_image [src]" #> p.imageUrl &
       "#cart_item_name *" #>  p.name &
       "#cart_item_price *" #> OrderValidator.formatPrice (p.price) &
       ".cart_total_price *" #> OrderValidator.formatPrice (p.price * p.qty.getOrElse(0)) &
       "#cart_item_desc *" #> p.description &
-      (if (showConfirmation)
+      (if (showConfirmation || showOrderDetails)
         "#cart_quantity *" #> p.qty.getOrElse(1)
        else
         ".cart_quantity_input [value]" #> p.qty.getOrElse(1) ) &
@@ -117,7 +117,7 @@ trait CartViewer extends RenderMessages {
                                   orderInfo: Option[Order] = None): CssSel = {
     if (productList.size > 0) {
       val order = productList.sortBy(i => (i.name, i.id))
-      "#cart_row *" #> order.map { p => showCartItem(p)} &
+      "#cart_row *" #> order.map { p => showCartItem(p, orderInfo.isDefined)} &
         ".cart_menu [style!]" #> "display:none" &
         "#order_summary [style!]" #> "display:none" &
         showOrderSummary(order, orderInfo.isDefined) &
