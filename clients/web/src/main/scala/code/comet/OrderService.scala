@@ -16,8 +16,8 @@ object OrderService extends LiftActor with ListenerManager {
       ordersUpdates = ordersUpdates :+ o
       updateListeners(o)
     }
-    case (email: String, sessionId: String, showHeader: Boolean) =>
-      updateListeners(email, sessionId, showHeader)
+    case (email: String, sessionId: String, order: Option[Order]) =>
+      updateListeners(email, sessionId, order)
     case (email: String, sessionId: String, query: OrderQuery) =>
       updateListeners(email, sessionId, query)
     case _ =>

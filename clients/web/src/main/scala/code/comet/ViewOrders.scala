@@ -11,7 +11,7 @@ import net.liftweb.util.Helpers._
 import com.kitchenfantasy.model._
 
 class ViewOrders extends CometActor with CometListener with CartViewer {
-  private var showOrderList = true
+  private var showOrderDetails = false
   private var adminQuery = OrderQuery()
 
   def registerWith = OrderService
@@ -19,7 +19,7 @@ class ViewOrders extends CometActor with CometListener with CartViewer {
   override def lifespan = Full (25 seconds)
 
   def render = {
-    if ((showOrderDetails) || (!showOrderList))
+    if (showOrderDetails)
       NodeSeq.Empty
     else {
       val orderList = (if (UserClient.isAdmin) ProductClient.adminSearch(adminQuery)
@@ -49,12 +49,12 @@ class ViewOrders extends CometActor with CometListener with CartViewer {
             reRender()
         case _ =>
       }
-    case (email: String, sessionId: String, showList: Boolean) =>
+    case (email: String, sessionId: String, o: Option[Order]) =>
       ApiClient.currentUser.get match {
         case Full(u) =>
           if ((u.email.equals(email)) &&
               (sessionId.equals(ApiClient.sessionId.get))) {
-            showOrderList = showList
+            showOrderDetails = !o.isEmpty
             reRender()
           }
         case _ =>
