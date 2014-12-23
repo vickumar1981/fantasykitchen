@@ -42,29 +42,29 @@ class ViewOrders extends CometActor with CometListener with CartViewer {
   }
 
   override def lowPriority = {
-    case (o: Order) =>
+    case (update: UpdateOrder) =>
       ApiClient.currentUser.get match {
         case Full(u) =>
-          if (u.email.equals(o.email) || UserClient.isAdmin)
+          if (u.email.equals(update.order.email) || UserClient.isAdmin)
             reRender()
         case _ =>
       }
-    case (email: String, sessionId: String, o: Option[Order]) =>
+    case (update: UpdateOrderDetails) =>
       ApiClient.currentUser.get match {
         case Full(u) =>
-          if ((u.email.equals(email)) &&
-              (sessionId.equals(ApiClient.sessionId.get))) {
-            showOrderDetails = !o.isEmpty
+          if ((u.email.equals(update.email)) &&
+              (update.sessionId.equals(ApiClient.sessionId.get))) {
+            showOrderDetails = update.order.isDefined
             reRender()
           }
         case _ =>
       }
-    case (email: String, sessionId: String, query: OrderQuery) =>
+    case (update: UpdateAdminSearch) =>
       ApiClient.currentUser.get match {
         case Full(u) =>
-          if ((u.email.equals(email)) &&
-            (sessionId.equals(ApiClient.sessionId.get))) {
-            adminQuery = query
+          if ((u.email.equals(update.email)) &&
+            (update.sessionId.equals(ApiClient.sessionId.get))) {
+            adminQuery = update.query
             reRender()
           }
         case _ =>

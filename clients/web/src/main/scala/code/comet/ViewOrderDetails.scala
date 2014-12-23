@@ -1,13 +1,12 @@
 package code
 package comet
 
-import code.lib.client.{ProductClient, UserClient, ApiClient}
+import code.lib.client.ApiClient
 import code.lib.service.CartViewer
 import net.liftweb._
 import http._
 import net.liftweb.common.Full
 import scala.xml.NodeSeq
-import net.liftweb.util.Helpers._
 import com.kitchenfantasy.model._
 
 class ViewOrderDetails extends CometActor with CometListener with CartViewer {
@@ -20,12 +19,12 @@ class ViewOrderDetails extends CometActor with CometListener with CartViewer {
     else renderOrderDetails(currentOrder.get)
 
   override def lowPriority = {
-    case (email: String, sessionId: String, o: Option[Order]) =>
+    case (update: UpdateOrderDetails) =>
       ApiClient.currentUser.get match {
         case Full(u) =>
-          if ((u.email.equals(email)) &&
-            (sessionId.equals(ApiClient.sessionId.get))) {
-            currentOrder = o
+          if ((u.email.equals(update.email)) &&
+            (update.sessionId.equals(ApiClient.sessionId.get))) {
+            currentOrder = update.order
             reRender()
           }
         case _ =>

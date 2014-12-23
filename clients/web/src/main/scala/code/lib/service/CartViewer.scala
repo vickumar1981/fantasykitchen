@@ -1,6 +1,6 @@
 package code.lib.service
 
-import code.comet.OrderService
+import code.comet.{UpdateOrderDetails, UpdateOrder, OrderService}
 import code.lib.client.{ApiClient, UserClient, ProductClient}
 import net.liftweb.http.js.{JE, JsCmd, JsCmds}
 import net.liftweb.http.js.JsCmds._
@@ -69,7 +69,7 @@ trait CartViewer extends RenderMessages {
     ProductClient.orderProducts(order) match {
       case Some(order) => {
         S.redirectTo ("/orders", ()=> {
-          OrderService ! order.data
+          OrderService ! UpdateOrder(order.data)
           S.notice (renderNotice("Order successful."))
         })}
       case _ => {
@@ -92,8 +92,9 @@ trait CartViewer extends RenderMessages {
         (if (showConfirmation) SHtml.ajaxCall(JE.JsRaw("$('#checkout').hide()"), placeConfirmedOrder(order) _)
          else if (showOrderDetails)
           SHtml.ajaxInvoke(() => {
-            OrderService ! (ApiClient.currentUser.get.get.email, ApiClient.sessionId.get, None)
-            S.redirectTo("/orders")
+            S.redirectTo("/orders", () =>
+              OrderService !
+                UpdateOrderDetails(ApiClient.currentUser.get.get.email, ApiClient.sessionId.get, None))
             JsCmds.Noop })
          else
           SHtml.ajaxInvoke(()=> S.redirectTo("/checkout")))
@@ -107,7 +108,8 @@ trait CartViewer extends RenderMessages {
       "#orderTotal *" #> OrderValidator.formatPrice(o.total.getOrElse(0L)) &
       "#viewOrderDetails [style!]" #> "display:none" &
       "#viewOrderDetails [onclick]" #> SHtml.ajaxInvoke(() => {
-        OrderService ! (ApiClient.currentUser.get.get.email, ApiClient.sessionId.get, Some(o))
+        OrderService !
+          UpdateOrderDetails(ApiClient.currentUser.get.get.email, ApiClient.sessionId.get, Some(o))
         JsCmds.Noop }) &
       "#orderName *" #> (o.credit_card.first_name + " " + o.credit_card.last_name) &
       "#orderEmail *" #> o.email

@@ -17,7 +17,7 @@ import scala.xml.NodeSeq
 
 class AdminSearch extends CometActor with CometListener {
   private var showOrderDetails = false
-  private var adminQuery = OrderQuery()
+  private var adminQuery: OrderQuery = OrderQuery()
 
   private var order_search = ""
   private var order_start_dt = ""
@@ -28,15 +28,11 @@ class AdminSearch extends CometActor with CometListener {
   def registerWith = OrderService
   override def lifespan = Full (25 seconds)
 
-  private def getDateFilters = {
+  private def getDtFilter (in: Long) = {
     val cal = Calendar.getInstance
-    val today = Calendar.getInstance.getTime
-    cal.add(Calendar.DAY_OF_YEAR, -5)
-    val fiveDaysAgo = cal.getTime
-    (dtFormat.format(fiveDaysAgo), dtFormat.format(today))
+    cal.setTimeInMillis(in)
+    dtFormat.format(cal.getTime)
   }
-
-  lazy val datePicker = getDateFilters
 
   private def extractDt (value: String, defaultVal: Long): Long = {
     try {
@@ -51,33 +47,44 @@ class AdminSearch extends CometActor with CometListener {
 
   def render = {
     def processAdminSearch: JsCmd = {
-      val startDt = extractDt(order_start_dt, System.currentTimeMillis - 432000000)
-      val endDt = extractDt(order_end_dt, System.currentTimeMillis)
+      val startDt = extractDt(order_start_dt, adminQuery.start_date)
+      val endDt = extractDt(order_end_dt, adminQuery.end_date)
       val query = (if (startDt > endDt) OrderQuery(order_search, endDt, startDt)
-      else OrderQuery(order_search, startDt, endDt))
-      OrderService ! (ApiClient.currentUser.get.get.email, ApiClient.sessionId.get, query)
+        else OrderQuery(order_search, startDt, endDt))
+      OrderService !
+        UpdateAdminSearch(ApiClient.currentUser.get.get.email, ApiClient.sessionId.get, query)
       JsCmds.Noop
     }
 
     if (showOrderDetails || !UserClient.isAdmin)
       NodeSeq.Empty
     else {
-      "#order_search" #> SHtml.text(order_search, order_search = _) &
-        "#order_start_date" #> SHtml.text(datePicker._1, order_start_dt = _) &
-        "#order_end_date" #> SHtml.text(datePicker._2, order_end_dt = _) &
+      "#order_search" #> SHtml.text(adminQuery.text, order_search = _) &
+        "#order_start_date" #> SHtml.text(getDtFilter(adminQuery.start_date),
+          order_start_dt = _) &
+        "#order_end_date" #> SHtml.text(getDtFilter(adminQuery.end_date),
+          order_end_dt = _) &
         "#process_order_search" #> (SHtml.hidden(() => processAdminSearch))
     }
   }
 
   override def lowPriority = {
-    case (email: String, sessionId: String, o: Option[Order]) =>
+    case (update: UpdateOrderDetails) =>
       ApiClient.currentUser.get match {
         case Full(u) =>
-          if ((u.email.equals(email)) &&
-              (sessionId.equals(ApiClient.sessionId.get))) {
-            showOrderDetails = !o.isEmpty
+          if ((u.email.equals(update.email)) &&
+              (update.sessionId.equals(ApiClient.sessionId.get))) {
+            showOrderDetails = update.order.isDefined
             reRender()
           }
+        case _ =>
+      }
+    case (update: UpdateAdminSearch) =>
+      ApiClient.currentUser.get match {
+        case Full(u) =>
+          if ((u.email.equals(update.email)) &&
+            (update.sessionId.equals(ApiClient.sessionId.get)))
+            adminQuery = update.query
         case _ =>
       }
     case _ =>

@@ -6,20 +6,24 @@ import http._
 import actor._
 import com.kitchenfantasy.model._
 
+case class UpdateOrder (order: Order)
+case class UpdateOrderDetails (email: String, sessionId: String, order: Option[Order])
+case class UpdateAdminSearch (email: String, sessionId: String, query: OrderQuery)
+
 object OrderService extends LiftActor with ListenerManager {
   var ordersUpdates = Vector[Order]()
 
   def createUpdate = ordersUpdates
 
   override def lowPriority = {
-    case (o: Order) => {
-      ordersUpdates = ordersUpdates :+ o
-      updateListeners(o)
+    case (update: UpdateOrder) => {
+      ordersUpdates = ordersUpdates :+ update.order
+      sendListenersMessage(update)
     }
-    case (email: String, sessionId: String, order: Option[Order]) =>
-      updateListeners(email, sessionId, order)
-    case (email: String, sessionId: String, query: OrderQuery) =>
-      updateListeners(email, sessionId, query)
+    case (update: UpdateOrderDetails) =>
+      sendListenersMessage(update)
+    case (update: UpdateAdminSearch) =>
+      sendListenersMessage(update)
     case _ =>
   }
 }
