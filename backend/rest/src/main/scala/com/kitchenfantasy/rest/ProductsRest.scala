@@ -20,7 +20,10 @@ class ProductsRest extends Rest with KitchenRestAuth {
         case (string, Some(search)) =>
           authorizeCredentials(search.credential, (u) => {
             if (u.is_admin) {
-              val orders = Orders.findByQuery(search.query).sortBy(o => {
+              val orders = Orders.findByQuery(search.query)
+                .filter (o => search.query.status.isEmpty ||
+                  search.query.status.equalsIgnoreCase(o.status))
+                .sortBy(o => {
                 if (o.timestamp.isDefined)
                   -o.timestamp.get
                 else
@@ -48,17 +51,52 @@ class ProductsRest extends Rest with KitchenRestAuth {
         case (string, None) => Error(400, "POST data doesn't conform to type user credential.")
       }
 
+    case POST("products" :: "order" :: "status" :: Nil, raw) =>
+      SerializationProvider.read[OrderUpdate](raw) match {
+        case (string, Some(update)) =>
+          authorizeCredentials(update.credential, (u) => {
+            if (u.is_admin)
+              Orders.read(update.order_id) match {
+                case Some(o) => {
+                  if (!o.status.equalsIgnoreCase("refund") &&
+                    update.status.equalsIgnoreCase("refund")) {
+                    if (CCPaymentJob.refundPayment(o)) {
+                      val newOrder = Orders.updateStatus(o, update.status.toLowerCase)
+                      val emailSender = JobSettings.processor.actorOf(Props[SendEmailJob],
+                        "refund_order_%s".format(o.id.getOrElse(System.currentTimeMillis.toString)))
+                      emailSender ! OrderRefundEmail (newOrder)
+                      JSONResponse(newOrder, 1)
+                    }
+                    else Error(400, "Unable to refund order '%s'.".format(update.order_id.toLowerCase))
+                  }
+                  else if (o.status.equalsIgnoreCase("approved") &&
+                    update.status.equalsIgnoreCase("completed")) {
+                    val newOrder = Orders.updateStatus(o, update.status.toLowerCase)
+                    val emailSender = JobSettings.processor.actorOf(Props[SendEmailJob],
+                      "complete_order_%s".format(o.id.getOrElse(System.currentTimeMillis.toString)))
+                    emailSender ! OrderCompletionEmail (newOrder)
+                    JSONResponse(newOrder, 1)
+                  }
+                  else Error(400, "Status is invalid.")
+                }
+                case None => Error(400, "No order found with id '%s'.".format(update.order_id))
+              }
+            else Error(400, "POST credentials are invalid.")
+          })
+        case (string, None) => Error(400, "POST data doesn't conform to type user credential.")
+      }
+
     case POST("products" :: "order" :: "email" :: Nil, raw) =>
       SerializationProvider.read[OrderContactInfo](raw) match {
         case (string, Some(orderContact)) =>
           Orders.read(orderContact.order_id) match {
             case Some(o) => {
               val emailSender = JobSettings.processor.actorOf(Props[SendEmailJob],
-                "user_order_info" + "_" + o.id.getOrElse("") + "_" + System.currentTimeMillis)
+                "user_order_info_%s_%s".format(o.id.getOrElse(""), System.currentTimeMillis))
               emailSender ! OrderInfoEmail(o.id.get, o.email, orderContact.info)
               JSONResponse("OK", 1)
             }
-            case _ => Error(400, "No order found with id '" + orderContact.order_id + "'.")
+            case _ => Error(400, "No order found with id '%s'.".format(orderContact.order_id))
           }
         case (string, None) => Error(400, "POST data doesn't conform to type order contact information.")
       }
@@ -67,7 +105,7 @@ class ProductsRest extends Rest with KitchenRestAuth {
       SerializationProvider.read[Transaction](raw) match {
         case (string, Some(transaction)) =>
           authorizeCredentials(transaction.credential, (u) => {
-            if ((u.credit_cards.isDefined) && (u.credit_cards.get.size > 0)) {
+            if (u.credit_cards.isDefined && (u.credit_cards.get.size > 0)) {
               if (u.address.isDefined) {
                 val products: List[Product] = transaction.order.filter(_.qty.getOrElse(0) > 0).map {
                   p => Products.read(p.id) match {
@@ -82,10 +120,10 @@ class ProductsRest extends Rest with KitchenRestAuth {
                     Some(total), Some(subtotal), Some(tax))
 
                   CCPaymentJob.processPayment(o) match {
-                    case Some(transaction_id) => {
-                      val newOrder = Orders.createOrder(o, transaction_id)
+                    case Some(result) => {
+                      val newOrder = Orders.createOrder(o, result._1, result._2)
                       val emailSender = JobSettings.processor.actorOf(Props[SendEmailJob],
-                        "confirm_order" + "_" + newOrder.id.getOrElse(System.currentTimeMillis.toString))
+                        "confirm_order_%s".format(newOrder.id.getOrElse(System.currentTimeMillis.toString)))
                       emailSender ! OrderConfirmationEmail(newOrder)
                       JSONResponse(newOrder, 1)
                     }

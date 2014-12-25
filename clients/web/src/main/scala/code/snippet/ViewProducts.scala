@@ -54,7 +54,7 @@ class ViewProducts extends CartViewer {
 
   def sendOrderEmail = {
     def processOrderEmail: JsCmd = {
-      if (contact_order_id.length > 0 && contact_order_info.length > 0) {
+      if (!contact_order_id.isEmpty && !contact_order_info.isEmpty) {
         ProductClient.sendOrderEmail(contact_order_id, contact_order_info) match {
           case Some(s) => {
             S.notice(renderNotice("Order email sent..."))

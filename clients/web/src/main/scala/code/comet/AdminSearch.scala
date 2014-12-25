@@ -9,7 +9,7 @@ import net.liftweb.http.js.{JsCmds, JsCmd}
 
 import net.liftweb._
 import http._
-import net.liftweb.common.Full
+import net.liftweb.common.{Empty, Full}
 import net.liftweb.util.Helpers._
 import com.kitchenfantasy.model._
 
@@ -19,9 +19,13 @@ class AdminSearch extends CometActor with CometListener {
   private var showOrderDetails = false
   private var adminQuery: OrderQuery = OrderQuery()
 
+  private lazy val orderStatusList: Map[String, String] =
+    Map("-- All --" -> "", "Approved" -> "approved",
+      "Completed" -> "completed", "Refund" -> "refund")
   private var order_search = ""
   private var order_start_dt = ""
   private var order_end_dt = ""
+  private var order_status = ""
 
   lazy val dtFormat = new SimpleDateFormat("MM/dd/yyyy")
 
@@ -49,8 +53,9 @@ class AdminSearch extends CometActor with CometListener {
     def processAdminSearch: JsCmd = {
       val startDt = extractDt(order_start_dt, adminQuery.start_date)
       val endDt = extractDt(order_end_dt, adminQuery.end_date)
-      val query = (if (startDt > endDt) OrderQuery(order_search, endDt, startDt)
-        else OrderQuery(order_search, startDt, endDt))
+      val status = orderStatusList(order_status)
+      val query = (if (startDt > endDt) OrderQuery(order_search, endDt, startDt, status)
+        else OrderQuery(order_search, startDt, endDt, status))
       OrderService !
         UpdateAdminSearch(ApiClient.currentUser.get.get.email, ApiClient.sessionId.get, query)
       JsCmds.Noop
@@ -64,7 +69,12 @@ class AdminSearch extends CometActor with CometListener {
           order_start_dt = _) &
         "#order_end_date" #> SHtml.text(getDtFilter(adminQuery.end_date),
           order_end_dt = _) &
-        "#process_order_search" #> (SHtml.hidden(() => processAdminSearch))
+        "#process_order_search" #> (SHtml.hidden(() => processAdminSearch)) &
+        "#order_status" #> SHtml.select(orderStatusList.toSeq.sortBy(_._2).map(o => (o._1 -> o._1)),
+          orderStatusList.find(_._2 == adminQuery.status) match {
+            case Some(s) => Full(s._1)
+            case _ => Empty
+          }, order_status = _)
     }
   }
 

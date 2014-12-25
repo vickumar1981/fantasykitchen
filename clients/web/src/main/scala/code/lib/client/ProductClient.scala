@@ -76,6 +76,27 @@ object ProductClient extends Loggable {
     else None
   }
 
+  def updateOrderStatus(order_id: String, status: String): Option[ApiOrder] = {
+    if (currentUser.isDefined)
+      currentUser.get match {
+        case Full(u) => {
+          val credential = UserCredential (u.email, u.password)
+          val update = OrderUpdate(credential, order_id, status)
+          val result = Http(ApiClient.products.updateOrderStatus(update) OK as.String).either
+          result() match {
+            case Right(content) => {
+              logger.info("Setting order id '%s' to '%s' status".format(order_id, status))
+              val updatedOrder = JsonParser.parse(content).extract[ApiOrder]
+              Some(updatedOrder)
+            }
+            case _  => None
+          }
+        }
+        case _ => None
+      }
+    else None
+  }
+
   def orderProducts(products: List[Product]): Option[ApiOrder] = {
     if (currentUser.isDefined)
       currentUser.get match {
@@ -85,7 +106,7 @@ object ProductClient extends Loggable {
           val result = Http(ApiClient.products.order(transaction) OK as.String).either
           result() match {
             case Right(content) => {
-              logger.info("Ordering products for user '" + u.email + "'")
+              logger.info("Ordering products for user '%s'".format(u.email))
               val updatedOrder = JsonParser.parse(content).extract[ApiOrder]
               myCart.set(Empty)
               Some(updatedOrder)

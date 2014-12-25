@@ -6,6 +6,7 @@ import code.lib.service.CartViewer
 import net.liftweb._
 import http._
 import net.liftweb.common.Full
+import scala.collection.mutable.ListBuffer
 import scala.xml.NodeSeq
 import net.liftweb.util.Helpers._
 import com.kitchenfantasy.model._
@@ -13,6 +14,7 @@ import com.kitchenfantasy.model._
 class ViewOrders extends CometActor with CometListener with CartViewer {
   private var showOrderDetails = false
   private var adminQuery = OrderQuery()
+  var newOrders = new ListBuffer[String]()
 
   def registerWith = OrderService
   private def noOrdersErrMsg = <b>There are no orders.</b>
@@ -31,7 +33,7 @@ class ViewOrders extends CometActor with CometListener with CartViewer {
               ".orderMenu [style+]" #> "display:none" &
               "#viewOrderDetails [style+]" #> "display:none"
           else
-            "#orderRow *" #> orderList.data.map { o => showOrderItem(o)} &
+            ".orderRow" #> orderList.data.map { o => showOrderItem(o, newOrders.toList)} &
               ".orderMenu [style!]" #> "display:none"
         }
         case _ => "#orderItem" #> noOrdersErrMsg &
@@ -45,8 +47,10 @@ class ViewOrders extends CometActor with CometListener with CartViewer {
     case (update: UpdateOrder) =>
       ApiClient.currentUser.get match {
         case Full(u) =>
-          if (u.email.equals(update.order.email) || UserClient.isAdmin)
+          if (u.email.equals(update.order.email) || UserClient.isAdmin) {
+            newOrders += update.order.id.getOrElse("")
             reRender()
+          }
         case _ =>
       }
     case (update: UpdateOrderDetails) =>
@@ -55,6 +59,8 @@ class ViewOrders extends CometActor with CometListener with CartViewer {
           if ((u.email.equals(update.email)) &&
               (update.sessionId.equals(ApiClient.sessionId.get))) {
             showOrderDetails = update.order.isDefined
+            if (showOrderDetails)
+              newOrders -= update.order.get.id.getOrElse("")
             reRender()
           }
         case _ =>

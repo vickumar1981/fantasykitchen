@@ -2,8 +2,6 @@ package com.kitchenfantasy.jobs
 
 import akka.actor.ActorSystem
 import com.kitchenfantasy.server.GlobalConfiguration
-
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 object JobSettings {
@@ -29,45 +27,126 @@ object JobSettings {
 }
 
 object EmailTemplates {
-
   object order_info {
-    def subject (order_id: String, from: String) = from + ": Order - " + order_id
+    def subject (order_id: String, from: String) = "%s: Order - %s".format(from, order_id)
     def body (order_id: String, from: String, body: String) =
-    { "User: " + from + ".\n\nOrder ID: " + order_id + "\n\n\n" +
-      body + "\n\n\n" }
+      """
+        |User: %s
+        |
+        |Order Id: %s
+        |
+        |Comment: %s
+        |
+      """.format(from, order_id, body).stripMargin
+  }
+
+  object complete_order {
+    lazy val subject = "Thanks! Your Order is on its way!"
+
+    def body(order_id: String, cc_number: String, total: String) =
+      """
+        |Thank you!  Your order is on its way.
+        |Please expect delivery in 2-3 business days.
+        |
+        |
+        |Review the details of your order below:
+        |
+        |
+        |    Order Id: %s
+        |    CC #: %s
+        |    Total: %s
+        |
+        |
+        |
+        |***** DO NOT RESPOND TO THIS MESSAGE *****
+        |
+      """.format(order_id, cc_number, total).stripMargin
+  }
+
+  object refund_order {
+    lazy val subject = "Your Order has been refunded."
+
+    def body(order_id: String, cc_number: String, total: String) =
+      """
+        |Thank you!  Your order has been successfully refunded.
+        |Please allow 5-6 business days for the refunded funds to
+        |be processed into your account.
+        |
+        |
+        |Review the details of your order below:
+        |
+        |
+        |    Order Id: %s
+        |    CC #: %s
+        |    Total: %s
+        |
+        |
+        |
+        |***** DO NOT RESPOND TO THIS MESSAGE *****
+        |
+      """.format(order_id, cc_number, total).stripMargin
   }
 
   object confirm_order {
     lazy val subject = "Thanks! Your Order has been confirmed."
 
-    def body (order_id: String, cc_number: String, total: String) =
-    { "Thank you!  Your order has been confirmed.\n\n" +
-      "Please review the information about your order below: \n\n\n" +
-      "\tOrder Id: " + order_id + "\n" +
-      "\tCC #: " + cc_number + "\n" +
-      "\tTotal: " + total + "\n\n\n\n" +
-      "***** DO NOT RESPOND TO THIS MESSAGE *****\n\n" }
+    def body(order_id: String, cc_number: String, total: String) =
+      """
+        |Thank you!  Your order has been confirmed.
+        |
+        |Please review the information about your order below:
+        |
+        |
+        |    Order Id: %s
+        |    CC #: %s
+        |    Total: %s
+        |
+        |
+        |
+        |***** DO NOT RESPOND TO THIS MESSAGE *****
+        |
+      """.format(order_id, cc_number, total).stripMargin
   }
 
   object registration {
     lazy val subject = "Welcome to Fantasy Kitchen"
-
-    def body (code: String) = { "Welcome to Fantasy Kitchen.\n\n" +
-      "Thank you for registering!\n\n" +
-      "Please use the following verification code\n" +
-      "to complete your registration\n\n\n" +
-      "Verification Code: " + code + "\n\n\n\n" +
-      "***** DO NOT RESPOND TO THIS MESSAGE *****\n\n" }
+    def body (code: String) =
+      """
+        |Welcome to Fantasy Kitchen.
+        |
+        |Thank you for registering!
+        |
+        |Please use the following verification code
+        |to complete your registration
+        |
+        |
+        |Verification Code: %s
+        |
+        |
+        |
+        |***** DO NOT RESPOND TO THIS MESSAGE *****
+        |
+      """.format(code).stripMargin
   }
 
   object pw_reminder {
     lazy val subject = "Update your Fantasy Kitchen password"
-
-    def body (code: String) = { "Update your Fantasy Kitchen password.\n\n" +
-      "If you did not request a password reminder please disregard this email.\n\n" +
-      "Please use the following verification code\n" +
-      "to update your password\n\n\n" +
-      "Verification Code: " + code + "\n\n\n\n" +
-      "***** DO NOT RESPOND TO THIS MESSAGE *****\n\n" }
+    def body (code: String) =
+      """
+        |Update your Fantasy Kitchen password.
+        |
+        |If you did not request a password reminder please disregard this email
+        |
+        |Please use the following verification code
+        |to update your password
+        |
+        |
+        |Verification Code: %s
+        |
+        |
+        |
+        |***** DO NOT RESPOND TO THIS MESSAGE *****
+        |
+      """.format(code).stripMargin
   }
 }

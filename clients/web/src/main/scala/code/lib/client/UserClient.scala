@@ -65,7 +65,7 @@ object UserClient extends UserCookieManager with Loggable {
           val result = Http(ApiClient.user.updateInfo(update) OK as.String).either
           result() match {
             case Right(content) => {
-              logger.info("Updating user info '" + u.email + "'")
+              logger.info("Updating user info '%s'".format(u.email))
               val updatedUser = JsonParser.parse(content).extract[ApiUser]
               ApiClient.currentUser.set(Full(updatedUser.data))
               Some(updatedUser)
@@ -93,7 +93,7 @@ object UserClient extends UserCookieManager with Loggable {
     val result = Http(ApiClient.user.register(u) OK as.String).either
     result() match {
       case Right(content) => {
-        logger.info("Registering user '" + u.email + "'")
+        logger.info("Registering user '%s'".format(u.email))
         val registeredUser = JsonParser.parse(content).extract[ApiUser]
         Some(registeredUser)
       }
@@ -105,7 +105,7 @@ object UserClient extends UserCookieManager with Loggable {
     val result = Http(ApiClient.user.login(u) OK as.String).either
     result() match {
       case Right(content) => {
-        logger.info("Logging in '" + u.email + "'")
+        logger.info("Logging in '%s'".format(u.email))
         val loggedInUser = JsonParser.parse(content).extract[ApiUser]
         ApiClient.currentUser.set(Full(loggedInUser.data))
         Some(loggedInUser)

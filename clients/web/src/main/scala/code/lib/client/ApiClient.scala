@@ -34,6 +34,8 @@ object ApiClient {
   object products {
     def view = url(baseUrl + "/products").GET
     def order(t: Transaction) = url(baseUrl + "/products/order").POST.setBody(compact(render(decompose(t))))
+    def updateOrderStatus(update: OrderUpdate) =
+      url(baseUrl + "/products/order/status").POST.setBody(compact(render(decompose(update))))
     def viewOrders(u: UserCredential) = url(baseUrl + "/products/orders").POST.setBody(compact(render(decompose(u))))
     def adminQuery(search: OrderSearch) =
       url(baseUrl + "/products/orders/q").POST.setBody(compact(render(decompose(search))))

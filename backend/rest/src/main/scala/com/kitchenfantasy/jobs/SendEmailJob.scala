@@ -10,6 +10,8 @@ import com.kitchenfantasy.model.{UserCredential, InviteCode, Order, OrderValidat
 case class RegistrationEmail (invite: InviteCode)
 case class ForgotPwEmail (credential: UserCredential)
 case class OrderConfirmationEmail (order: Order)
+case class OrderRefundEmail (order: Order)
+case class OrderCompletionEmail (order: Order)
 case class OrderInfoEmail (order_id: String, from: String, info: String)
 
 class SendEmailJob extends Actor {
@@ -28,13 +30,11 @@ class SendEmailJob extends Actor {
       new javax.mail.Authenticator() {
         protected override def getPasswordAuthentication(): PasswordAuthentication = {
           new PasswordAuthentication(JobSettings.email.username, JobSettings.email.password)
-        }
-      })
+        }})
     session
   }
 
-  private def emailMessage (s: Session, from: String,
-                            to:String, subject: String, text:String) = {
+  private def emailMessage (s: Session, from: String, to:String, subject: String, text:String) = {
     val message = new MimeMessage(s)
     message.setFrom(new InternetAddress(from))
     message.setRecipients(Message.RecipientType.TO, to.toLowerCase)
@@ -52,8 +52,40 @@ class SendEmailJob extends Actor {
         EmailTemplates.order_info.body(job.order_id, job.from, job.info))
       Transport.send(message)
     } catch {
-      case (e: MessagingException) => JobSettings.logger.warn("Error sending order information email from  '"
-        + job.from + "'")
+      case (e: MessagingException) =>
+        JobSettings.logger.warn("Error sending order information email from '%s'".format(job.from))
+    }
+  }
+
+  private def sendOrderCompletionEmail (job: OrderCompletionEmail) = {
+    val session = emailSession
+    try {
+      val message = emailMessage(session, JobSettings.email.from,
+        job.order.email, EmailTemplates.complete_order.subject,
+        EmailTemplates.complete_order.body(job.order.id.getOrElse(""),
+          "xxxx" + (job.order.credit_card.cc_number takeRight 4),
+          OrderValidator.formatPrice(job.order.total.getOrElse(0L))))
+      Transport.send(message)
+      JobSettings.logger.info("Sent order completion email to '%s'".format(job.order.email.toLowerCase))
+    } catch {
+      case (e: MessagingException) =>
+        JobSettings.logger.warn("Error sending order completion email to '%s'".format(job.order.email.toLowerCase))
+    }
+  }
+
+  private def sendOrderRefundEmail (job: OrderRefundEmail) = {
+    val session = emailSession
+    try {
+      val message = emailMessage(session, JobSettings.email.from,
+        job.order.email, EmailTemplates.refund_order.subject,
+        EmailTemplates.refund_order.body(job.order.id.getOrElse(""),
+          "xxxx" + (job.order.credit_card.cc_number takeRight 4),
+          OrderValidator.formatPrice(job.order.total.getOrElse(0L))))
+      Transport.send(message)
+      JobSettings.logger.info("Sent order refund email to '%s'".format(job.order.email.toLowerCase))
+    } catch {
+      case (e: MessagingException) =>
+        JobSettings.logger.warn("Error sending order refund email to '%s'".format(job.order.email.toLowerCase))
     }
   }
 
@@ -66,10 +98,10 @@ class SendEmailJob extends Actor {
                         "xxxx" + (job.order.credit_card.cc_number takeRight 4),
                         OrderValidator.formatPrice(job.order.total.getOrElse(0L))))
       Transport.send(message)
-      JobSettings.logger.info("Sent order confirmation email to '" + job.order.email.toLowerCase + "'")
+      JobSettings.logger.info("Sent order confirmation email to '%s'".format(job.order.email.toLowerCase))
     } catch {
-      case (e: MessagingException) => JobSettings.logger.warn("Error sending order confirmation email to  '"
-        + job.order.email.toLowerCase + "'")
+      case (e: MessagingException) =>
+        JobSettings.logger.warn("Error sending order confirmation email to '%s'".format(job.order.email.toLowerCase))
     }
   }
 
@@ -80,11 +112,11 @@ class SendEmailJob extends Actor {
                       job.invite.user.email, EmailTemplates.registration.subject,
                       EmailTemplates.registration.body(job.invite.code))
       Transport.send(message)
-      JobSettings.logger.info("Sent registration email to '" + job.invite.user.email.toLowerCase + "'")
+      JobSettings.logger.info("Sent registration email to '%s'".format(job.invite.user.email.toLowerCase))
 
     } catch {
-      case (e: MessagingException) => JobSettings.logger.warn("\nError sending registration email to '"
-        + job.invite.user.email.toLowerCase + "'")
+      case (e: MessagingException) =>
+        JobSettings.logger.warn("Error sending registration email to '%s'".format(job.invite.user.email.toLowerCase))
     }
   }
 
@@ -95,11 +127,12 @@ class SendEmailJob extends Actor {
         job.credential.email, EmailTemplates.pw_reminder.subject,
         EmailTemplates.pw_reminder.body(job.credential.invite_code.getOrElse("")))
       Transport.send(message)
-      JobSettings.logger.info("Sent password reminder email to '" + job.credential.email.toLowerCase + "'")
+      JobSettings.logger.info("Sent password reminder email to '%s'".format(job.credential.email.toLowerCase))
 
     } catch {
-      case (e: MessagingException) => JobSettings.logger.warn("\nError sending password reminder email to '"
-        + job.credential.email.toLowerCase + "'")
+      case (e: MessagingException) =>
+        JobSettings.logger.warn(
+          "Error sending password reminder email to '%s'".format(job.credential.email.toLowerCase))
     }
   }
 
@@ -114,6 +147,14 @@ class SendEmailJob extends Actor {
     }
     case (job: OrderConfirmationEmail) => {
       sendOrderConfirmationEmail(job)
+      context.stop(self)
+    }
+    case (job: OrderCompletionEmail) => {
+      sendOrderCompletionEmail(job)
+      context.stop(self)
+    }
+    case (job: OrderRefundEmail) => {
+      sendOrderRefundEmail(job)
       context.stop(self)
     }
     case (job: OrderInfoEmail) => {
