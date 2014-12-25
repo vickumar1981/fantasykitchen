@@ -51,7 +51,7 @@ object Main {
         MigrationRunner.importAdmins()
       }
       else
-        println("\ninvalid import option: " + args(1) + "\n")
+        println("\ninvalid import option: %s\n".format(args(1)))
     }
     else {
       publicServer.start()
@@ -186,9 +186,11 @@ object Main {
       s"\t- for ${clz.getName}, $err ;"
     }.mkString("\n")
 
-    "Couldn't start server due to handler initialization issues:\n" +
-      errorLines +
-      "\nPlease fix these issues and restart the server."
+    """
+      |Couldn't start server due to handler initialization issues:
+      |%s
+      |Please fix these issues and restart the server.
+    """.format(errorLines).stripMargin
   }
 
   private def handlerClasses(config: Config) = {

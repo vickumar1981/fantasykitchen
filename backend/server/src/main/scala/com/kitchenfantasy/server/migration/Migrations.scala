@@ -15,7 +15,7 @@ object MigrationRunner {
   def importProducts() =
     for (product <- ProductInventory.productList) {
       Products.createProduct(product)
-      println ("imported product " + product.name + ".")
+      println ("imported product %s.".format(product.name))
     }
 
   def importAdmins() =
@@ -23,8 +23,8 @@ object MigrationRunner {
       Users.read(admin.toLowerCase) match {
         case Some(u) => {
           Users.makeAdmin(u)
-          println ("user '" + u.email + "' made administrator.")
+          println ("user '%s' made administrator.".format(u.email))
         }
-        case _ => println ("user '" + admin+ "' not found.")
+        case _ => println ("user '%s' not found.".format(admin))
       }
 }

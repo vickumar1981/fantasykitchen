@@ -29,7 +29,7 @@ class UserRest extends Rest with KitchenRestAuth {
                 case None => {
                   val newUser = Users.updateInvite(u)
                   val emailSender = JobSettings.processor.actorOf(Props[SendEmailJob],
-                    "forgot_pw_reminder" + "_" + newUser.invite_code.get)
+                    "forgot_pw_reminder_%s".format(newUser.invite_code.get))
                   emailSender ! ForgotPwEmail(credential.copy(invite_code = newUser.invite_code))
                   JSONResponse(User("", "", "", ""), 1)
                 }
@@ -41,8 +41,8 @@ class UserRest extends Rest with KitchenRestAuth {
                   else Error(400, "POST credentials are invalid.")
                 }
               }
-            case None => Error(400, "User '" + credential.email.toLowerCase +
-              "' does not exists.  Unable to send password reminder.")
+            case None => Error(400, "User '%s' does not exist.  Unable to send password reminder"
+              .format(credential.email.toLowerCase))
           }
         case (string, None) => Error(400, "POST data doesn't conform to type user credential.")
       }
@@ -52,24 +52,24 @@ class UserRest extends Rest with KitchenRestAuth {
         case (string, Some(register_user)) => {
           val email = register_user.email.toLowerCase
           if (Users.hasKey(email))
-            Error(400, "User '" + email + "' already exists.  Unable to register.")
+            Error(400, "User '%s' already exists.  Unable to register.".format(email))
           else
             register_user.invite_code match {
               case None => {
-                JobSettings.logger.info("Registering user '" + email + "'")
+                JobSettings.logger.info("Registering user '%s'".format(email))
                 val invite = InviteCodes.createInviteCode(register_user.copy(email=email,
                   password=LoginValidator.encryptPW(register_user.password)))
                 val emailSender = JobSettings.processor.actorOf(Props[SendEmailJob],
-                  "register_user_" + "_" + invite.code)
+                  "register_user_%s".format(invite.code))
                 emailSender ! RegistrationEmail(invite)
                 JSONResponse(invite.user.copy(confirmed = false), 1)
               }
               case Some(code) =>
                 InviteCodes.read(email) match {
-                  case None => Error(404, "No invite code found for user '" + email + "'.")
+                  case None => Error(404, "No invite code found for user '%s'.".format(email))
                   case Some(invite) => {
                     if (code.equals(invite.code)) {
-                      JobSettings.logger.info("Verifying user '" + email + "'")
+                      JobSettings.logger.info("Verifying user '%s'".format(email))
                       val newUser = Users.createUser(invite)
                       InviteCodes.delete(email)
                       JSONResponse(newUser, 1)

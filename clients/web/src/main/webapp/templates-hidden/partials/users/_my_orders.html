@@ -3,25 +3,30 @@
         <h2 class="title text-center">My Orders</h2>
     </div>
     <div class="table-responsive cart_info" align="center">
-        <div class="register-req" data-lift="msgs"></div>
         <div class="col-sm-12">
             <table id="order-list" class="table table-condensed">
                 <thead>
                 <tr class="orderMenu">
                     <td>Date</td>
+                    <td>Status</td>
                     <td>Email</td>
                     <td>Name</td>
                     <td align="center">Order ID</td>
-                    <td>Credit Card #</td>
+                    <td>CC #</td>
                     <td>Total</td>
                     <td></td>
                 </tr>
                 </thead>
                 <tbody>
                 <div id="orderItem">
-                    <tr id="orderRow">
+                    <tr class="orderRow">
                         <td class="order-date">
+                            <img id="order-new-image" src="/images/product-details/new.jpg"
+                                 style="display:none" width="22" height="11" />
                             <p id="orderDate"></p>
+                        </td>
+                        <td class="order-status">
+                            <p id="orderStatus"></p>
                         </td>
                         <td class="order-email">
                             <p id="orderEmail"></p>

@@ -1758,6 +1758,16 @@ h2.title {
 .user_info > li > span {
 }
 
+.order_info select {
+  background: #FFFFFF;
+  border:0;
+  color: #696763;
+  padding: 5px;
+  width: 100px;
+  border-radius: 0;
+  resize: none
+}
+
 .user_info input, select, textarea {
   background: #F0F0E9;
   border:0;
@@ -1771,7 +1781,6 @@ h2.title {
 .user_info select:focus {
   border: 0
 }
-
 
 .chose_area .update {
   margin-left: 40px;

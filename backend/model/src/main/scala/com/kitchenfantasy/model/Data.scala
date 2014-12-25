@@ -42,11 +42,14 @@ case class Order (email: String, credit_card: CCInfo, address: Address,
                   order: List[Product], total: Option[Long] = None,
                   subtotal: Option[Long] = None, tax: Option[Long] = None,
                   promo: Option[Promo] = None, timestamp: Option[Long] = None,
-                  id: Option[String] = None, transaction_id: Option[String] = None)
+                  id: Option[String] = None, payment_id: Option[String] = None,
+                  sale_id: Option[String] = None, status: String = "approved")
 
 case class OrderContactInfo (order_id: String, info: String)
 
 case class OrderQuery (text: String = "", start_date: Long = System.currentTimeMillis - 432000000,
-                       end_date: Long = System.currentTimeMillis)
+                       end_date: Long = System.currentTimeMillis, status: String = "")
 
 case class OrderSearch (credential: UserCredential, query: OrderQuery)
+
+case class OrderUpdate (credential: UserCredential, order_id: String, status: String)

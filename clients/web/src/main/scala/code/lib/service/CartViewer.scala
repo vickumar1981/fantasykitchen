@@ -36,7 +36,8 @@ trait CartViewer extends RenderMessages {
 
   protected def addProductToCart (p: Product): JsCmd = {
     ProductClient.addProductToCart(p)
-    S.notice(<div class='register-req'><p>{p.name} added to cart.</p></div>)
+    S.notice(<div class='register-req'><p>{p.name} added to
+      <a href='/cart'><font color="FFFFFF"><u>Cart.</u></font></a></p></div>)
     SetHtml("cart_count", <span>{ProductClient.updateCartText}</span>)
   }
 
@@ -64,12 +65,27 @@ trait CartViewer extends RenderMessages {
         SetHtml("cart_item", shoppingCartTemplate.is.applyAgain)
       })
 
+
+  private def updateOrderStatus (order_id: String, status: String) (s: String) = {
+    S.notice("Updating order...")
+    ProductClient.updateOrderStatus(order_id, status) match {
+      case Some(order) =>
+        S.redirectTo ("/orders", ()=> {
+          OrderService !
+            UpdateOrderDetails(ApiClient.currentUser.get.get.email, ApiClient.sessionId.get, None)
+          S.notice(renderNotice("Updated order."))
+        })
+      case _ => S.notice(renderNotice("Error updating order."))
+    }
+    JsCmds.Noop
+  }
+
   private def placeConfirmedOrder (order: List[Product]) (s: String) = {
     S.notice("Placing order...")
     ProductClient.orderProducts(order) match {
       case Some(order) => {
+        OrderService ! UpdateOrder(order.data)
         S.redirectTo ("/orders", ()=> {
-          OrderService ! UpdateOrder(order.data)
           S.notice (renderNotice("Order successful."))
         })}
       case _ => {
@@ -81,7 +97,8 @@ trait CartViewer extends RenderMessages {
   }
 
   private def showOrderSummary (order: List[Product],
-                                showOrderDetails: Boolean = false): CssSel = {
+                                showOrderDetails: Boolean = false,
+                                 orderId: String = "", orderStatus: String = ""): CssSel = {
     val (total, subtotal, tax) = OrderValidator.orderTotals(order)
     ".order_subtotal *" #> ("Subtotal: " + OrderValidator.formatPrice(subtotal)) &
       ".order_tax *" #> ("Tax: " + OrderValidator.formatPrice(tax)) &
@@ -98,11 +115,40 @@ trait CartViewer extends RenderMessages {
             JsCmds.Noop })
          else
           SHtml.ajaxInvoke(()=> S.redirectTo("/checkout")))
-    else "#checkout [style+]" #> "display:none")
+      &
+        (if (showOrderDetails && UserClient.isAdmin &&
+          orderStatus.equalsIgnoreCase("approved"))
+          "#adminButtons [style!]" #> "display:none" &
+          "#completeOrder [onclick]" #>
+            JsCmds.Confirm("Are you sure you want to complete this order?",
+            SHtml.ajaxCall(JE.JsRaw("$('#adminButtons').hide()"),
+              updateOrderStatus(orderId, "completed") _)) &
+          "#refundOrder [onclick]" #>
+            JsCmds.Confirm("Are you sure you want to refund this order?",
+            SHtml.ajaxCall(JE.JsRaw("$('#adminButtons').hide()"),
+              updateOrderStatus(orderId, "refund") _))
+        else if (showOrderDetails && UserClient.isAdmin &&
+          orderStatus.equalsIgnoreCase("completed"))
+          "#adminButtons [style!]" #> "display:none" &
+            "#completeOrder [style+]" #> "display:none" &
+            "#refundOrder [onclick]" #>
+              JsCmds.Confirm("Are you sure you want to refund this order?",
+                SHtml.ajaxCall(JE.JsRaw("$('#adminButtons').hide()"),
+                  updateOrderStatus(orderId, "refund") _))
+        else
+          "#adminButtons [style+]" #> "display:none")
+    else "#checkout [style+]" #> "display:none" &
+      "#adminButtons [style+]" #> "display:none")
   }
 
-  protected def showOrderItem (o: Order): CssSel =
-    "#orderDate *" #> formatToDate(o.timestamp.getOrElse(0L)) &
+  protected def showOrderItem (o: Order, newOrders: List[String] = List.empty): CssSel =
+      (if (newOrders.contains(o.id.getOrElse("")))
+        ".orderRow [bgcolor+]" #> "#F0F0E9" &
+        "#order-new-image [style]" #> "display:inline"
+      else
+        "#order-new-image [style]" #> "display:none") &
+      "#orderDate *" #> formatToDate(o.timestamp.getOrElse(0L)) &
+      "#orderStatus *" #> o.status.capitalize &
       "#orderId *" #> o.id.getOrElse("---") &
       "#orderCC *" #> ("xxxx" + (o.credit_card.cc_number takeRight 4)) &
       "#orderTotal *" #> OrderValidator.formatPrice(o.total.getOrElse(0L)) &
@@ -112,17 +158,26 @@ trait CartViewer extends RenderMessages {
           UpdateOrderDetails(ApiClient.currentUser.get.get.email, ApiClient.sessionId.get, Some(o))
         JsCmds.Noop }) &
       "#orderName *" #> (o.credit_card.first_name + " " + o.credit_card.last_name) &
-      "#orderEmail *" #> o.email
+      "#orderEmail *" #> o.email &
+      "#shippingAddress *" #> (o.address.line1 + ", " + o.address.line2) &
+      "#shippingCity *" #> o.address.city &
+      "#shippingState *" #> o.address.state &
+      "#shippingZip *" #> o.address.postalCode &
+      "#shippingNotes *" #> o.address.notes
 
 
   private def renderProductsList (productList: List[Product],
                                   orderInfo: Option[Order] = None): CssSel = {
+    val (orderId: String, orderStatus: String) = orderInfo match {
+      case Some(o) => (o.id.getOrElse(""), o.status)
+      case _ => ("", "")
+    }
     if (productList.size > 0) {
       val order = productList.sortBy(i => (i.name, i.id))
       "#cart_row *" #> order.map { p => showCartItem(p, orderInfo.isDefined)} &
         ".cart_menu [style!]" #> "display:none" &
         "#order_summary [style!]" #> "display:none" &
-        showOrderSummary(order, orderInfo.isDefined) &
+        showOrderSummary(order, orderInfo.isDefined, orderId, orderStatus) &
         (if (orderInfo.isDefined) showOrderItem(orderInfo.get)
           else "orderItem [style+]" #> "display:none")
     }

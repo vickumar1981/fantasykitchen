@@ -8,16 +8,18 @@ object Orders extends RiakMapper[Order]("kitchen-orders") {
   private def addIndexes (o: Order): Order = {
     if (o.id.isDefined) {
       addIndex(o.id.get, "email", o.email.toLowerCase)
+      addIndex(o.id.get, "status", o.status.toLowerCase)
       if (o.timestamp.isDefined)
         addIndex(o.id.get, "timestamp", o.timestamp.get)
-      if (o.transaction_id.isDefined)
-        addIndex(o.id.get, "transaction_id", o.transaction_id.get)
+      if (o.payment_id.isDefined)
+        addIndex(o.id.get, "payment_id", o.payment_id.get)
+      if (o.sale_id.isDefined)
+        addIndex(o.id.get, "sale_id", o.sale_id.get)
       if (o.promo.isDefined)
         addIndex(o.id.get, "promo", o.promo.get.id)
     }
     o
   }
-
 
   def searchOrders (text: String) = new JSSourceFunction(
     """
@@ -34,15 +36,22 @@ object Orders extends RiakMapper[Order]("kitchen-orders") {
   def findByEmail (email: String): List[Order] = findByIndex("email", email)
 
   def findByQuery (query: OrderQuery) =
-    if (query.text.length > 0)
+    if (!query.text.isEmpty)
       findByIndex("timestamp", query.start_date, query.end_date + 86400000, Some(searchOrders(query.text)))
     else
       findByIndex("timestamp", query.start_date, query.end_date + 86400000)
 
-  def createOrder (o: Order, transaction_id: String): Order = {
+  def updateStatus (o: Order, newStatus: String): Order = {
+    val newOrder = o.copy (status=newStatus)
+    update(o.id.getOrElse(""), newOrder)
+    addIndexes (newOrder)
+  }
+
+  def createOrder (o: Order, payment_id: String, sale_id: String): Order = {
     val timeStamp = System.currentTimeMillis
-    val newId = timeStamp + "_" + generateId.substring(0, 10)
-    val newOrder = o.copy (id=Some(newId), timestamp=Some(timeStamp), transaction_id=Some(transaction_id))
+    val newId = "%s_%s".format(timeStamp, generateId.substring(0, 10))
+    val newOrder = o.copy (id=Some(newId), timestamp=Some(timeStamp),
+      payment_id=Some(payment_id), sale_id=Some(sale_id))
     create (newId, newOrder)
     addIndexes (newOrder)
   }

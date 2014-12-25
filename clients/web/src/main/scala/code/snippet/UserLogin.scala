@@ -37,7 +37,7 @@ class UserLogin extends RenderMessages {
     if (!errorList.filter(!_._2.isEmpty).isEmpty) {
       errorList.foreach {
         case (error_id, error_value) => {
-          if (error_value.length > 0)
+          if (!error_value.isEmpty)
             S.notice (renderNotice(error_value))
         }
         case _ => Noop }
@@ -121,7 +121,7 @@ class UserLogin extends RenderMessages {
 
   def logIn = {
     def processLogIn: JsCmd = {
-      if (login_pw.length > 0 && login_email.length > 0)
+      if (!login_pw.isEmpty && !login_email.isEmpty)
         if (forgotPWInfo._3) {
           val errorList = LoginValidator.validateLogin(login_email, login_pw, login_confirm_pw, true)
           if (!showErrors(errorList))
