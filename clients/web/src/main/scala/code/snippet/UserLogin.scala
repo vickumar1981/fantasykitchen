@@ -20,8 +20,6 @@ class UserLogin extends RenderMessages {
   private object registrationInfo extends RequestVar[(String, String, String, Boolean)]("", "", "", false)
   private object forgotPWInfo extends RequestVar[(String, String, Boolean)]("","",false)
 
-  case class ForgotPWCredentials(email: String, pw: String)
-
   private var login_email = forgotPWInfo.get._1
   private var login_pw = forgotPWInfo.get._2
   private var login_confirm_pw = ""
@@ -112,7 +110,7 @@ class UserLogin extends RenderMessages {
     val credentialsJs =
       """
         |function currentCredentials() {
-        |            return { email:  $('#login_email').val(), pw: $('#login_pw').val() };
+        |            return { email:  $('#login_email').val(), password: $('#login_pw').val() };
         |        }
       """.stripMargin
 
@@ -155,16 +153,16 @@ class UserLogin extends RenderMessages {
     }
 
     def forgotMyPassword (value: JValue) = {
-      value.extractOpt[ForgotPWCredentials] match {
+      value.extractOpt[UserCredential] match {
         case Some(c) => {
-          val errorList = LoginValidator.validateLogin(c.email, c.pw, c.pw)
+          val errorList = LoginValidator.validateLogin(c.email, c.password, c.password)
 
           if (!showErrors(errorList))
-            UserClient.forgotPw(UserCredential(c.email, c.pw)) match {
+            UserClient.forgotPw(c) match {
               case Some(u) => S.redirectTo(pageUrl, () => {
                 S.notice(renderNotice("An invite code was sent to your email.  " +
                   "Please check your email address"))
-                forgotPWInfo((c.email, c.pw, true))
+                forgotPWInfo((c.email, c.password, true))
               })
               case None => S.notice(renderNotice("This user is not registered. Please register..."))
             }

@@ -13,7 +13,7 @@ object ProductClient extends Loggable {
 
   def shoppingCartItems(): List[Product] =
     if (myCart.isDefined)
-      myCart.get match {
+      myCart.is match {
         case Full(productList) => productList
         case _ => List.empty
       }
@@ -41,7 +41,7 @@ object ProductClient extends Loggable {
 
   def adminSearch (query: OrderQuery): Option[ApiOrders] = {
     if (currentUser.isDefined)
-      currentUser.get match {
+      currentUser.is match {
         case Full(u) => {
           val credential = UserCredential(u.email, u.password)
           val search = OrderSearch(credential, query)
@@ -60,7 +60,7 @@ object ProductClient extends Loggable {
 
   def viewOrders (): Option[ApiOrders] = {
     if (currentUser.isDefined)
-      currentUser.get match {
+      currentUser.is match {
         case Full(u) => {
           val credential = UserCredential(u.email, u.password)
           val result = Http(ApiClient.products.viewOrders(credential) OK as.String).either
@@ -78,7 +78,7 @@ object ProductClient extends Loggable {
 
   def updateOrderStatus(order_id: String, status: String): Option[ApiOrder] = {
     if (currentUser.isDefined)
-      currentUser.get match {
+      currentUser.is match {
         case Full(u) => {
           val credential = UserCredential (u.email, u.password)
           val update = OrderUpdate(credential, order_id, status)
@@ -99,7 +99,7 @@ object ProductClient extends Loggable {
 
   def orderProducts(products: List[Product]): Option[ApiOrder] = {
     if (currentUser.isDefined)
-      currentUser.get match {
+      currentUser.is match {
         case Full(u) => {
           val credential = UserCredential (u.email, u.password)
           val transaction = Transaction (credential, products)
@@ -131,7 +131,7 @@ object ProductClient extends Loggable {
   }
 
   def deleteProductFromCart (p: Product) = {
-    myCart.get match {
+    myCart.is match {
       case Full(cartItems) => {
         val newCart: MutableList[Product] = MutableList()
         for (product <- cartItems) {
@@ -147,7 +147,7 @@ object ProductClient extends Loggable {
 
   def addProductToCart (p: Product, qtyDelta: Int = 1) = {
     var newProduct = Product(p.id, p.name, p.description, p.price, p.imageUrl, true, Some(1))
-    myCart.get match {
+    myCart.is match {
       case Full(cartItems) => {
         val newCart: MutableList[Product] = MutableList()
         for (product <- cartItems) {

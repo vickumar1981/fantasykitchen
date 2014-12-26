@@ -57,7 +57,8 @@ class AdminSearch extends CometActor with CometListener {
       val query = (if (startDt > endDt) OrderQuery(order_search, endDt, startDt, status)
         else OrderQuery(order_search, startDt, endDt, status))
       OrderService !
-        UpdateAdminSearch(ApiClient.currentUser.get.get.email, ApiClient.sessionId.get, query)
+        UpdateAdminSearch(ApiClient.currentUser.is.openOrThrowException("no user").email,
+          ApiClient.sessionId.is, query)
       JsCmds.Noop
     }
 
@@ -80,20 +81,20 @@ class AdminSearch extends CometActor with CometListener {
 
   override def lowPriority = {
     case (update: UpdateOrderDetails) =>
-      ApiClient.currentUser.get match {
+      ApiClient.currentUser.is match {
         case Full(u) =>
           if ((u.email.equals(update.email)) &&
-              (update.sessionId.equals(ApiClient.sessionId.get))) {
+              (update.sessionId.equals(ApiClient.sessionId.is))) {
             showOrderDetails = update.order.isDefined
             reRender()
           }
         case _ =>
       }
     case (update: UpdateAdminSearch) =>
-      ApiClient.currentUser.get match {
+      ApiClient.currentUser.is match {
         case Full(u) =>
           if ((u.email.equals(update.email)) &&
-            (update.sessionId.equals(ApiClient.sessionId.get)))
+            (update.sessionId.equals(ApiClient.sessionId.is)))
             adminQuery = update.query
         case _ =>
       }

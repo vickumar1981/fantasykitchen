@@ -13,7 +13,7 @@ object UserClient extends UserCookieManager with Loggable {
 
   def isLoggedIn (): Boolean = {
     if (currentUser.isDefined)
-      currentUser.get match {
+      currentUser.is match {
         case Full(u) => true
         case _ => false
       }
@@ -22,7 +22,7 @@ object UserClient extends UserCookieManager with Loggable {
 
   def isAdmin (): Boolean = {
     if (currentUser.isDefined)
-      currentUser.get match {
+      currentUser.is match {
         case Full(u) => u.is_admin
         case _ => false
       }
@@ -32,7 +32,7 @@ object UserClient extends UserCookieManager with Loggable {
   def getUserAddress (): Address = {
     val emptyAddress = Address("", "", "", "", "")
     if (currentUser.isDefined)
-      currentUser.get match {
+      currentUser.is match {
         case Full(u) => u.address.getOrElse(emptyAddress)
         case _ => emptyAddress
       }
@@ -42,7 +42,7 @@ object UserClient extends UserCookieManager with Loggable {
   def getUserBillingInfo (): CCInfo = {
     val emptyCCInfo = CCInfo("", "", 0, 0, "", "")
     if (currentUser.isDefined)
-      currentUser.get match {
+      currentUser.is match {
         case Full(u) =>
           u.credit_cards match {
             case Some(cc_list) =>
@@ -58,7 +58,7 @@ object UserClient extends UserCookieManager with Loggable {
 
   def updateUserInfo (a: Address, c: CCInfo): Option[ApiUser] = {
     if (currentUser.isDefined)
-      currentUser.get match {
+      currentUser.is match {
         case Full(u) => {
           val credential = UserCredential (u.email, u.password)
           val update = UserUpdate (credential, a, c)
