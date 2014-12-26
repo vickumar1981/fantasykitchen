@@ -1,19 +1,18 @@
-<div class="lift:ViewProducts.viewCart">
-    <div class="col-sm-12">
+<div class="col-sm-12" id="cartContent">
+    <div class="lift:ViewProducts.viewCart">
         <table class="table table-condensed">
             <thead>
-            <tr class="cart_menu">
-                <td class="image" align="center">Item</td>
-                <td class="description"></td>
-                <td class="price">Price</td>
-                <td class="quantity">Quantity</td>
-                <td class="total">Total</td>
-                <td></td>
-            </tr>
+                <tr class="cart_menu">
+                    <td class="image" align="center">Item</td>
+                    <td class="description"></td>
+                    <td class="price">Price</td>
+                    <td class="quantity">Quantity</td>
+                    <td class="total">Total</td>
+                    <td></td>
+                </tr>
             </thead>
             <tbody>
-            <div id="cart_item">
-                <tr id="cart_row">
+                <tr class="cart_row">
                     <td class="cart_product">
                         <img width="110" height="110" id="cart_image" src="images/cart/one.png" alt="">
                     </td>
@@ -26,10 +25,10 @@
                     </td>
                     <td class="cart_quantity">
                         <div class="cart_quantity_button">
-                            <a class="cart_quantity_up" href=""> + </a>
+                            <a class="cart_quantity_up"> + </a>
                             <input class="cart_quantity_input" type="text"
                                    name="quantity" value="1" autocomplete="off" size="2" readonly>
-                            <a class="cart_quantity_down" href=""> - </a>
+                            <a class="cart_quantity_down"> - </a>
                         </div>
                     </td>
                     <td class="cart_total">
@@ -37,10 +36,9 @@
                     </td>
                     <td class="cart_delete">
                         <section name="cart_section"></section>
-                        <a class="cart_quantity_delete" href=""><i class="fa fa-times"></i></a>
+                        <a class="cart_quantity_delete"><i class="fa fa-times"></i></a>
                     </td>
                 </tr>
-            </div>
             </tbody>
         </table>
         <div id="order_summary" class="heading" align="right">

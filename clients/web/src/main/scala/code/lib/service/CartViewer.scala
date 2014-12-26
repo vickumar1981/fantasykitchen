@@ -17,7 +17,7 @@ trait CartViewer extends RenderMessages {
 
   protected object checkoutConfirmation extends RequestVar[(Boolean)](false)
   private def renderShoppingCart = SHtml.memoize { renderCart }
-  private object shoppingCartTemplate extends RequestVar(renderShoppingCart)
+  protected object shoppingCartTemplate extends RequestVar(renderShoppingCart)
 
   def showCheckout = !checkoutConfirmation.get
   def showConfirmation = checkoutConfirmation.get
@@ -30,7 +30,7 @@ trait CartViewer extends RenderMessages {
     df.format(newDate)
   }
 
-  private def showNoItemsInCart = "#cart_row *" #> noProductsInCart &
+  private def showNoItemsInCart = ".cart_row *" #> noProductsInCart &
     ".cart_menu [style+]" #> "display:none" &
     "#order_summary [style+]" #> "display:none"
 
@@ -54,15 +54,18 @@ trait CartViewer extends RenderMessages {
       "name=cart_section [id+]" #> ( "product" + p.id ) &
       ".cart_quantity_delete [onclick]" #> SHtml.ajaxInvoke(() => {
         ProductClient.deleteProductFromCart(p)
-        SetHtml("cart_item", shoppingCartTemplate.is.applyAgain)
+        SetHtml("cart_count", <span>{ProductClient.updateCartText}</span>) &
+        SetHtml("cartContent", shoppingCartTemplate.is.applyAgain)
       }) &
       ".cart_quantity_up [onclick]" #> SHtml.ajaxInvoke(() => {
         ProductClient.addProductToCart(p)
-        SetHtml("cart_item", shoppingCartTemplate.is.applyAgain)
+        SetHtml("cart_count", <span>{ProductClient.updateCartText}</span>) &
+        SetHtml("cartContent", shoppingCartTemplate.is.applyAgain)
       }) &
       ".cart_quantity_down [onclick]" #> SHtml.ajaxInvoke(() => {
         ProductClient.addProductToCart(p, -1)
-        SetHtml("cart_item", shoppingCartTemplate.is.applyAgain)
+        SetHtml("cart_count", <span>{ProductClient.updateCartText}</span>) &
+        SetHtml("cartContent", shoppingCartTemplate.is.applyAgain)
       })
 
 
@@ -72,7 +75,7 @@ trait CartViewer extends RenderMessages {
       case Some(order) =>
         S.redirectTo ("/orders", ()=> {
           OrderService !
-            UpdateOrderDetails(ApiClient.currentUser.get.get.email, ApiClient.sessionId.get, None)
+            UpdateOrderDetails(ApiClient.currentUser.is.get.email, ApiClient.sessionId.is, None)
           S.notice(renderNotice("Updated order."))
         })
       case _ => S.notice(renderNotice("Error updating order."))
@@ -111,7 +114,7 @@ trait CartViewer extends RenderMessages {
           SHtml.ajaxInvoke(() => {
             S.redirectTo("/orders", () =>
               OrderService !
-                UpdateOrderDetails(ApiClient.currentUser.get.get.email, ApiClient.sessionId.get, None))
+                UpdateOrderDetails(ApiClient.currentUser.is.get.email, ApiClient.sessionId.is, None))
             JsCmds.Noop })
          else
           SHtml.ajaxInvoke(()=> S.redirectTo("/checkout")))
@@ -155,7 +158,7 @@ trait CartViewer extends RenderMessages {
       "#viewOrderDetails [style!]" #> "display:none" &
       "#viewOrderDetails [onclick]" #> SHtml.ajaxInvoke(() => {
         OrderService !
-          UpdateOrderDetails(ApiClient.currentUser.get.get.email, ApiClient.sessionId.get, Some(o))
+          UpdateOrderDetails(ApiClient.currentUser.is.get.email, ApiClient.sessionId.is, Some(o))
         JsCmds.Noop }) &
       "#orderName *" #> (o.credit_card.first_name + " " + o.credit_card.last_name) &
       "#orderEmail *" #> o.email &
@@ -174,7 +177,7 @@ trait CartViewer extends RenderMessages {
     }
     if (productList.size > 0) {
       val order = productList.sortBy(i => (i.name, i.id))
-      "#cart_row *" #> order.map { p => showCartItem(p, orderInfo.isDefined)} &
+      ".cart_row" #> order.map { p => showCartItem(p, orderInfo.isDefined)} &
         ".cart_menu [style!]" #> "display:none" &
         "#order_summary [style!]" #> "display:none" &
         showOrderSummary(order, orderInfo.isDefined, orderId, orderStatus) &

@@ -19,7 +19,7 @@ class ViewProducts extends CartViewer {
   private var contact_order_id = ""
   private var contact_order_info = ""
 
-  def viewCart (in: NodeSeq): NodeSeq = renderCart(in)
+  def viewCart (in: NodeSeq): NodeSeq = shoppingCartTemplate.is.apply(in)
 
   private def showProductItem (p: Product) =
     "#productImage [src]" #> p.imageUrl &

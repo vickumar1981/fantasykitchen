@@ -12,6 +12,9 @@ body {
   position: relative;
   font-weight:400px;
 }
+a {
+  cursor: pointer;
+}
 
 #lift__noticesContainer__ {
     position: fixed;
