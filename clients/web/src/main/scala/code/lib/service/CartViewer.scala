@@ -48,24 +48,23 @@ trait CartViewer extends RenderMessages {
       ".cart_total_price *" #> OrderValidator.formatPrice (p.price * p.qty.getOrElse(0)) &
       "#cart_item_desc *" #> p.description &
       (if (showConfirmation || showOrderDetails)
-        "#cart_quantity *" #> p.qty.getOrElse(1)
+        "#cart_quantity *" #> p.qty.getOrElse(0)
        else
-        ".cart_quantity_input [value]" #> p.qty.getOrElse(1) ) &
-      "name=cart_section [id+]" #> ( "product" + p.id ) &
+        ".cart_quantity_input [value]" #> p.qty.getOrElse(0) ) &
       ".cart_quantity_delete [onclick]" #> SHtml.ajaxInvoke(() => {
         ProductClient.deleteProductFromCart(p)
         SetHtml("cart_count", <span>{ProductClient.updateCartText}</span>) &
-        SetHtml("cartContent", shoppingCartTemplate.is.applyAgain)
+        SetHtml("cart_content", shoppingCartTemplate.is.applyAgain)
       }) &
       ".cart_quantity_up [onclick]" #> SHtml.ajaxInvoke(() => {
         ProductClient.addProductToCart(p)
         SetHtml("cart_count", <span>{ProductClient.updateCartText}</span>) &
-        SetHtml("cartContent", shoppingCartTemplate.is.applyAgain)
+        SetHtml("cart_content", shoppingCartTemplate.is.applyAgain)
       }) &
       ".cart_quantity_down [onclick]" #> SHtml.ajaxInvoke(() => {
         ProductClient.addProductToCart(p, -1)
         SetHtml("cart_count", <span>{ProductClient.updateCartText}</span>) &
-        SetHtml("cartContent", shoppingCartTemplate.is.applyAgain)
+        SetHtml("cart_content", shoppingCartTemplate.is.applyAgain)
       })
 
 
@@ -75,7 +74,8 @@ trait CartViewer extends RenderMessages {
       case Some(order) =>
         S.redirectTo ("/orders", ()=> {
           OrderService !
-            UpdateOrderDetails(ApiClient.currentUser.is.get.email, ApiClient.sessionId.is, None)
+            UpdateOrderDetails(ApiClient.currentUser.is.openOrThrowException("no user").email,
+              ApiClient.sessionId.is, None)
           S.notice(renderNotice("Updated order."))
         })
       case _ => S.notice(renderNotice("Error updating order."))
@@ -88,13 +88,9 @@ trait CartViewer extends RenderMessages {
     ProductClient.orderProducts(order) match {
       case Some(order) => {
         OrderService ! UpdateOrder(order.data)
-        S.redirectTo ("/orders", ()=> {
-          S.notice (renderNotice("Order successful."))
-        })}
-      case _ => {
-        S.redirectTo ("/checkout", () => {
-          S.notice(renderNotice("The credit card information is invalid."))
-        })}
+        S.redirectTo ("/orders", () => S.notice (renderNotice("Order successful.")))
+      }
+      case _ => S.redirectTo ("/checkout", () => S.notice(renderNotice("The credit card information is invalid.")))
     }
     JsCmds.Noop
   }
@@ -114,7 +110,8 @@ trait CartViewer extends RenderMessages {
           SHtml.ajaxInvoke(() => {
             S.redirectTo("/orders", () =>
               OrderService !
-                UpdateOrderDetails(ApiClient.currentUser.is.get.email, ApiClient.sessionId.is, None))
+                UpdateOrderDetails(ApiClient.currentUser.is.openOrThrowException("no user").email,
+                  ApiClient.sessionId.is, None))
             JsCmds.Noop })
          else
           SHtml.ajaxInvoke(()=> S.redirectTo("/checkout")))
@@ -158,7 +155,8 @@ trait CartViewer extends RenderMessages {
       "#viewOrderDetails [style!]" #> "display:none" &
       "#viewOrderDetails [onclick]" #> SHtml.ajaxInvoke(() => {
         OrderService !
-          UpdateOrderDetails(ApiClient.currentUser.is.get.email, ApiClient.sessionId.is, Some(o))
+          UpdateOrderDetails(ApiClient.currentUser.is.openOrThrowException("no user").email,
+            ApiClient.sessionId.is, Some(o))
         JsCmds.Noop }) &
       "#orderName *" #> (o.credit_card.first_name + " " + o.credit_card.last_name) &
       "#orderEmail *" #> o.email &
