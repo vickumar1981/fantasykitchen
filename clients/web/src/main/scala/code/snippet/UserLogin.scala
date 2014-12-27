@@ -19,6 +19,13 @@ class UserLogin extends RenderMessages {
 
   private object registrationInfo extends RequestVar[(String, String, String, Boolean)]("", "", "", false)
   private object forgotPWInfo extends RequestVar[(String, String, Boolean)]("","",false)
+  private object redirectUrl extends RequestVar[(Option[String])](None)
+
+  private def loginRedirect = "/%s".format(redirectUrl.is.getOrElse(""))
+  private def loginPageUrl = redirectUrl.is match {
+    case Some(url) => "%s?whence=%s".format(pageUrl, url)
+    case _ => pageUrl
+  }
 
   private var login_email = forgotPWInfo.get._1
   private var login_pw = forgotPWInfo.get._2
@@ -60,13 +67,13 @@ class UserLogin extends RenderMessages {
                 if (u.data.confirmed) {
                   ApiClient.currentUser.set(Full(u.data))
                   S.notice(renderNotice("Registering user..."))
-                  S.redirectTo("/")
+                  S.redirectTo(loginRedirect)
                 }
                 else
                   S.notice(renderNotice("The invite code was invalid.  Please check your email."))
               }
               case None =>
-                S.redirectTo(pageUrl, () => {
+                S.redirectTo(loginPageUrl, () => {
                   S.notice(renderNotice("An invite code was sent to your email.  " +
                     "Please check your email address"))
                   registrationInfo((email, pw, pw, true))
@@ -80,7 +87,7 @@ class UserLogin extends RenderMessages {
     }
 
     def cancelRegister: JsCmd = {
-      S.redirectTo(pageUrl, () => {
+      S.redirectTo(loginPageUrl, () => {
         S.notice(renderNotice("Clearing form..."))
         registrationInfo(("", "", "", false))
       })
@@ -113,7 +120,7 @@ class UserLogin extends RenderMessages {
         |            return { email:  $('#login_email').val(), password: $('#login_pw').val() };
         |        }
       """.stripMargin
-
+    redirectUrl.set(Some(S.param("whence").openOr("")))
     "#currentCredentials" #> Script(JE.JsRaw(credentialsJs).cmd)
   }
 
@@ -127,7 +134,7 @@ class UserLogin extends RenderMessages {
               Some(login_invite_code))) match {
               case Some(u) => {
                 ApiClient.currentUser.set(Full(u.data))
-                S.redirectTo("/", () => {
+                S.redirectTo(loginRedirect, () => {
                   S.notice(renderNotice("Your password was updated successfully."))
                 })
               }
@@ -144,7 +151,7 @@ class UserLogin extends RenderMessages {
               }
               else S.addCookie(HTTPCookie(UserClient.userCookieName, "").setMaxAge(0).setPath("/"))
               S.notice(renderNotice("Logging in..."))
-              S.redirectTo("/")
+              S.redirectTo(loginRedirect)
             }
             case _ => S.notice(renderNotice("There email and password are invalid.  Please try again."))
           }
@@ -159,7 +166,7 @@ class UserLogin extends RenderMessages {
 
           if (!showErrors(errorList))
             UserClient.forgotPw(c) match {
-              case Some(u) => S.redirectTo(pageUrl, () => {
+              case Some(u) => S.redirectTo(loginPageUrl, () => {
                 S.notice(renderNotice("An invite code was sent to your email.  " +
                   "Please check your email address"))
                 forgotPWInfo((c.email, c.password, true))
@@ -173,7 +180,7 @@ class UserLogin extends RenderMessages {
     }
 
     def cancelForgotPW: JsCmd = {
-      S.redirectTo(pageUrl, () => {
+      S.redirectTo(loginPageUrl, () => {
         S.notice(renderNotice("Clearing form..."))
         forgotPWInfo(("", "", false))
       })

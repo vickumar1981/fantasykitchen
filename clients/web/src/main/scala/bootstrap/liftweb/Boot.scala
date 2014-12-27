@@ -66,8 +66,10 @@ class Boot {
       Menu("Login") / "login",
       Menu("Cart") / "cart",
       Menu("Contact") / "contact",
-      Menu("Orders") /"orders" >> If(() => UserClient.isLoggedIn, ""),
-      Menu("Checkout") /"checkout" >> If(() => UserClient.isLoggedIn, ""))
+      Menu("Orders") /"orders" >>
+        If(() => UserClient.isLoggedIn, () => RedirectResponse("/login?whence=orders")),
+      Menu("Checkout") /"checkout" >>
+        If(() => UserClient.isLoggedIn, () => RedirectResponse("/login?whence=checkout")))
 
     def sitemapMutators = User.sitemapMutator
 

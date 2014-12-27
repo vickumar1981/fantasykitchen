@@ -121,7 +121,7 @@ class Checkout extends CartViewer {
 
   def confirm (in: NodeSeq): NodeSeq = {
     if (showConfirmation)
-      renderCart(in)
+      renderCart(true)(in)
     else NodeSeq.Empty
   }
 }

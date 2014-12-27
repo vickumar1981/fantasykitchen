@@ -16,7 +16,7 @@ trait CartViewer extends RenderMessages {
   private def defaultDateFormat = "MM-dd-yy HH:mm"
 
   protected object checkoutConfirmation extends RequestVar[(Boolean)](false)
-  private def renderShoppingCart = SHtml.memoize { renderCart }
+  private def renderShoppingCart = SHtml.memoize { renderCart(false)}
   protected object shoppingCartTemplate extends RequestVar(renderShoppingCart)
 
   def showCheckout = !checkoutConfirmation.get
@@ -102,8 +102,6 @@ trait CartViewer extends RenderMessages {
     ".order_subtotal *" #> ("Subtotal: " + OrderValidator.formatPrice(subtotal)) &
       ".order_tax *" #> ("Tax: " + OrderValidator.formatPrice(tax)) &
       ".order_total *" #> ("Total: " + OrderValidator.formatPrice(total)) &
-    (if (UserClient.isLoggedIn)
-      "#checkout [style!]" #> "display:none" &
       "#checkout [onclick]" #>
         (if (showConfirmation) SHtml.ajaxCall(JE.JsRaw("$('#checkout').hide()"), placeConfirmedOrder(order) _)
          else if (showOrderDetails)
@@ -114,8 +112,7 @@ trait CartViewer extends RenderMessages {
                   ApiClient.sessionId.is, None))
             JsCmds.Noop })
          else
-          SHtml.ajaxInvoke(()=> S.redirectTo("/checkout")))
-      &
+          SHtml.ajaxInvoke(()=> S.redirectTo("/checkout"))) &
         (if (showOrderDetails && UserClient.isAdmin &&
           orderStatus.equalsIgnoreCase("approved"))
           "#adminButtons [style!]" #> "display:none" &
@@ -137,8 +134,6 @@ trait CartViewer extends RenderMessages {
                   updateOrderStatus(orderId, "refund") _))
         else
           "#adminButtons [style+]" #> "display:none")
-    else "#checkout [style+]" #> "display:none" &
-      "#adminButtons [style+]" #> "display:none")
   }
 
   protected def showOrderItem (o: Order, newOrders: List[String] = List.empty): CssSel =
@@ -187,5 +182,8 @@ trait CartViewer extends RenderMessages {
 
   protected def renderOrderDetails(o: Order): CssSel =
     renderProductsList(o.order, Some(o))
-  protected def renderCart: CssSel = renderProductsList(ProductClient.shoppingCartItems)
+
+  protected def renderCart(filterEmpty: Boolean = false): CssSel =
+    renderProductsList(
+      ProductClient.shoppingCartItems.filter(!filterEmpty || _.qty.getOrElse(0) > 0))
 }
