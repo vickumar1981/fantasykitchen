@@ -47,17 +47,24 @@ class ViewOrders extends CometActor with CometListener with CartViewer {
     case (update: UpdateOrder) =>
       ApiClient.currentUser.is match {
         case Full(u) =>
-          if (u.email.equals(update.order.email) || UserClient.isAdmin) {
+          if (u.email.equalsIgnoreCase(update.order.email) || UserClient.isAdmin) {
             newOrders += update.order.id.getOrElse("")
             reRender()
           }
         case _ =>
       }
+    case (update: UpdateOrderStatus) =>
+      ApiClient.currentUser.is match {
+        case Full(u) =>
+          if (u.email.equalsIgnoreCase(update.email))
+            reRender()
+        case _ =>
+      }
     case (update: UpdateOrderDetails) =>
       ApiClient.currentUser.is match {
         case Full(u) =>
-          if ((u.email.equals(update.email)) &&
-              (update.sessionId.equals(ApiClient.sessionId.get))) {
+          if ((u.email.equalsIgnoreCase(update.email)) &&
+              (update.sessionId.equalsIgnoreCase(ApiClient.sessionId.get))) {
             showOrderDetails = update.order.isDefined
             if (showOrderDetails)
               newOrders -= update.order.get.id.getOrElse("")
@@ -68,8 +75,8 @@ class ViewOrders extends CometActor with CometListener with CartViewer {
     case (update: UpdateAdminSearch) =>
       ApiClient.currentUser.is match {
         case Full(u) =>
-          if ((u.email.equals(update.email)) &&
-            (update.sessionId.equals(ApiClient.sessionId.get))) {
+          if ((u.email.equalsIgnoreCase(update.email)) &&
+            (update.sessionId.equalsIgnoreCase(ApiClient.sessionId.get))) {
             adminQuery = update.query
             reRender()
           }

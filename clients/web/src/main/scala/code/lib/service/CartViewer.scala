@@ -1,6 +1,6 @@
 package code.lib.service
 
-import code.comet.{UpdateOrderDetails, UpdateOrder, OrderService}
+import code.comet.{UpdateOrderStatus, UpdateOrderDetails, UpdateOrder, OrderService}
 import code.lib.client.{ApiClient, UserClient, ProductClient}
 import net.liftweb.http.js.{JE, JsCmd, JsCmds}
 import net.liftweb.http.js.JsCmds._
@@ -68,7 +68,7 @@ trait CartViewer extends RenderMessages {
       })
 
 
-  private def updateOrderStatus (order_id: String, status: String) (s: String) = {
+  private def updateOrderStatus (order_id: String, email: String, status: String) (s: String) = {
     S.notice("Updating order...")
     ProductClient.updateOrderStatus(order_id, status) match {
       case Some(order) =>
@@ -76,6 +76,7 @@ trait CartViewer extends RenderMessages {
           OrderService !
             UpdateOrderDetails(ApiClient.currentUser.is.openOrThrowException("no user").email,
               ApiClient.sessionId.is, None)
+          OrderService ! UpdateOrderStatus (email)
           S.notice(renderNotice("Updated order."))
         })
       case _ => S.notice(renderNotice("Error updating order."))
@@ -95,9 +96,8 @@ trait CartViewer extends RenderMessages {
     JsCmds.Noop
   }
 
-  private def showOrderSummary (order: List[Product],
-                                showOrderDetails: Boolean = false,
-                                 orderId: String = "", orderStatus: String = ""): CssSel = {
+  private def showOrderSummary (order: List[Product], showOrderDetails: Boolean = false,
+                                orderId: String = "", orderEmail: String = "", orderStatus: String = ""): CssSel = {
     val (total, subtotal, tax) = OrderValidator.orderTotals(order)
     ".order_subtotal *" #> ("Subtotal: " + OrderValidator.formatPrice(subtotal)) &
       ".order_tax *" #> ("Tax: " + OrderValidator.formatPrice(tax)) &
@@ -119,11 +119,11 @@ trait CartViewer extends RenderMessages {
           "#completeOrder [onclick]" #>
             JsCmds.Confirm("Are you sure you want to complete this order?",
             SHtml.ajaxCall(JE.JsRaw("$('#adminButtons').hide()"),
-              updateOrderStatus(orderId, "completed") _)) &
+              updateOrderStatus(orderId, orderEmail, "completed") _)) &
           "#refundOrder [onclick]" #>
             JsCmds.Confirm("Are you sure you want to refund this order?",
             SHtml.ajaxCall(JE.JsRaw("$('#adminButtons').hide()"),
-              updateOrderStatus(orderId, "refund") _))
+              updateOrderStatus(orderId, orderEmail, "refund") _))
         else if (showOrderDetails && UserClient.isAdmin &&
           orderStatus.equalsIgnoreCase("completed"))
           "#adminButtons [style!]" #> "display:none" &
@@ -131,7 +131,7 @@ trait CartViewer extends RenderMessages {
             "#refundOrder [onclick]" #>
               JsCmds.Confirm("Are you sure you want to refund this order?",
                 SHtml.ajaxCall(JE.JsRaw("$('#adminButtons').hide()"),
-                  updateOrderStatus(orderId, "refund") _))
+                  updateOrderStatus(orderId, orderEmail, "refund") _))
         else
           "#adminButtons [style+]" #> "display:none")
   }
@@ -164,16 +164,16 @@ trait CartViewer extends RenderMessages {
 
   private def renderProductsList (productList: List[Product],
                                   orderInfo: Option[Order] = None): CssSel = {
-    val (orderId: String, orderStatus: String) = orderInfo match {
-      case Some(o) => (o.id.getOrElse(""), o.status)
-      case _ => ("", "")
+    val (orderId: String, orderEmail: String, orderStatus: String) = orderInfo match {
+      case Some(o) => (o.id.getOrElse(""), o.email, o.status)
+      case _ => ("", "", "")
     }
     if (productList.size > 0) {
       val order = productList.sortBy(i => (i.name, i.id))
       ".cart_row" #> order.map { p => showCartItem(p, orderInfo.isDefined)} &
         ".cart_menu [style!]" #> "display:none" &
         "#order_summary [style!]" #> "display:none" &
-        showOrderSummary(order, orderInfo.isDefined, orderId, orderStatus) &
+        showOrderSummary(order, orderInfo.isDefined, orderId, orderEmail, orderStatus) &
         (if (orderInfo.isDefined) showOrderItem(orderInfo.get)
           else "orderItem [style+]" #> "display:none")
     }
