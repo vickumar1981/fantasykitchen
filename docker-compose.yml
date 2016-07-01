@@ -1,0 +1,43 @@
+version: "2"
+
+services:
+  java8:
+    build: .
+    command: echo "-- Installed Java 8 --"
+
+  riak:
+    build: riak
+    command: sh -c "service riak restart; tail -f /var/log/riak/console.log"
+    expose:
+      - "8087"
+      - "8098"
+    ports:
+      - "8087:8087"
+      - "8098:8098"
+
+  api:
+    build: backend
+    command: sh start_api.sh
+    volumes:
+      - ./backend:/app/backend    
+    expose:
+      - "8080"
+    ports:
+      - "8080:8080"
+    depends_on:
+      - riak
+      - java8
+
+  web:
+    build: clients/web
+    command: sh sbt ~container:start
+    links:
+      - api
+    depends_on: 
+      - java8
+    volumes:
+      - ./clients/web:/app/clients/web
+    expose:
+      - "8000"
+    ports:
+      - "8000:8000"

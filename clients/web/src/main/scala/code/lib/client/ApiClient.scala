@@ -19,7 +19,16 @@ case class ApiOrders(data: List[Order], rows: Integer)
 
 object ApiClient {
   private implicit val formats = DefaultFormats
-  private def baseUrl = "http://localhost:8080"
+  private def getApiBaseUrl(): String = {
+    try {
+      val apiUrl = sys.env("API_URL")
+      apiUrl
+    }
+    catch {
+      case _: Throwable => "http://localhost:8080"
+    }
+  }
+  private lazy val baseUrl: String = getApiBaseUrl()
   object currentUser extends SessionVar[Box[User]](Empty)
   object sessionId extends SessionVar[String](UUID.randomUUID().toString.replace("-",""))
   object myCart extends SessionVar[Box[List[Product]]](Empty)
