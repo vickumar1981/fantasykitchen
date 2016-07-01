@@ -6,6 +6,7 @@
 *$.class
 .history
 lift_proto.db.h2.db
+lift_proto.db.lock.db
 console.devmode.log
 "backend/C:\\nppdf32Log\\debuglog.txt"
 clients/*/target
